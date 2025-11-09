@@ -1,0 +1,32 @@
+'use client';
+
+import { Layout } from 'antd';
+import Sidebar from '@/components/dashboard/Sidebar';
+import Header from '@/components/dashboard/Header';
+import AuthGuard from '@/components/auth/AuthGuard';
+
+const { Content } = Layout;
+
+export default function DashboardLayout({ children }) {
+  return (
+    <AuthGuard>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sidebar />
+        <Layout>
+          <Header />
+          <Content
+            style={{
+              margin: '24px 16px',
+              padding: 24,
+              minHeight: 280,
+              background: '#fff',
+              borderRadius: 8,
+            }}
+          >
+            {children}
+          </Content>
+        </Layout>
+      </Layout>
+    </AuthGuard>
+  );
+}

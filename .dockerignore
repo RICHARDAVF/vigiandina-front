@@ -1,0 +1,8 @@
+.env.development
+.env.production
+.next/
+node_modules/
+npm-debug.log
+yarn-error.log
+.git/
+.vscode/
