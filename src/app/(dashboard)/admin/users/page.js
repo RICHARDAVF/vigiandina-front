@@ -117,10 +117,11 @@ export default function UsuariosPage() {
           columns={columns}
           dataSource={data}
           rowKey={(row)=>`${row.id}`}
+          size='small'
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => `Total ${total} usuarios`,
+            showTotal: (total) => `Total ${total} registros`,
           }}
         />
       </Space>

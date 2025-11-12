@@ -4,9 +4,11 @@ import { useContext, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import {
   DashboardOutlined,
-  UserOutlined,
+  UserOutlined,UsergroupAddOutlined,
   SettingOutlined,
   FileTextOutlined,
+  BorderLeftOutlined
+  
 } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 import { SidebarContext } from '@/context/SidebarContext';
@@ -24,6 +26,31 @@ const menuItems = [
     key: ROUTES.ADMIN_USUARIOS,
     icon: <UserOutlined />,
     label: 'Usuarios',
+  },
+  {
+    key: ROUTES.ADMIN_COMPANIES,
+    icon: <BorderLeftOutlined/>,
+    label: 'Empresas',
+  },
+  {
+    key: ROUTES.ADMIN_POSITIONS,
+    icon: <BorderLeftOutlined/>,
+    label: 'Cargos',
+  },
+  {
+    key: ROUTES.ADMIN_COLLABORATORS,
+    icon: <UserOutlined />,
+    label: 'Trabajadores',
+  },
+  {
+    key: ROUTES.ADMIN_ATTENDACE,
+    icon: <UsergroupAddOutlined />,
+    label: 'Ingreso de personal',
+  },
+  {
+    key: ROUTES.ADMIN_VISITS,
+    icon: <UsergroupAddOutlined />,
+    label: 'Ingreso de visitas',
   },
   {
     key: ROUTES.ADMIN_REPORTES,

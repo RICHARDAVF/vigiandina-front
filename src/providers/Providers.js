@@ -2,7 +2,7 @@
 
 import { AuthProvider } from '@/context/AuthContext';
 import { SidebarProvider } from '@/context/SidebarContext';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App } from 'antd'; // Importar App
 import esES from 'antd/locale/es_ES';
 
 export default function Providers({ children }) {
@@ -16,11 +16,13 @@ export default function Providers({ children }) {
         },
       }}
     >
-      <AuthProvider>
-        <SidebarProvider>
-          {children}
-        </SidebarProvider>
-      </AuthProvider>
+      <App> {/* Envolver con App */}
+        <AuthProvider>
+          <SidebarProvider>
+            {children}
+          </SidebarProvider>
+        </AuthProvider>
+      </App>
     </ConfigProvider>
   );
 }

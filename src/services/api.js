@@ -6,7 +6,7 @@ export const api = {
       const response = await axiosInstance.get(url, config);
       return response.data;
     } catch (error) {
-      throw error;
+      return error.response;
     }
   },
 
@@ -15,7 +15,7 @@ export const api = {
       const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
-      throw error;
+      return error.response?.data;
     }
   },
 
@@ -24,7 +24,7 @@ export const api = {
       const response = await axiosInstance.put(url, data, config);
       return response.data;
     } catch (error) {
-      throw error;
+      return error.response?.data;
     }
   },
 
@@ -33,7 +33,7 @@ export const api = {
       const response = await axiosInstance.delete(url, config);
       return response.data;
     } catch (error) {
-      throw error;
+      return error.response?.data;
     }
   },
 
@@ -42,7 +42,7 @@ export const api = {
       const response = await axiosInstance.patch(url, data, config);
       return response.data;
     } catch (error) {
-      throw error;
+      return error.response?.data;
     }
   },
 };

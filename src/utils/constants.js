@@ -4,6 +4,11 @@ export const ROUTES = {
   ADMIN_USUARIOS: '/admin/users',
   ADMIN_CONFIGURACION: '/admin/configuration',
   ADMIN_REPORTES: '/admin/reports',
+  ADMIN_ATTENDACE: '/admin/attendance',
+  ADMIN_VISITS: '/admin/visits',
+  ADMIN_COLLABORATORS: '/admin/collaborators',
+  ADMIN_COMPANIES: '/admin/companies',
+  ADMIN_POSITIONS: '/admin/positions',
 };
 
 export const API_ENDPOINTS = {
@@ -15,7 +20,24 @@ export const API_ENDPOINTS = {
   },
   USERS:{
     LIST:"v1/users/list/"
-  }
+  },
+  ATTENDANCE:{
+    LIST:"v1/attendance/list/",
+    CREATE:"v1/attendance/create/",
+    PATCH:"v1/attendance/update/{pk}/",
+  },
+  VISITS:{
+    LIST:"v1/visits/list/",
+  },
+  COLLABORATORS:{
+    LIST:"v1/collaborators/list/",
+  },
+  COMPANIES:{
+    LIST:"v1/companies/list/",
+  },
+  POSITIONS:{
+    LIST:"v1/positions/list/",
+  },
 };
 
 export const STORAGE_KEYS = {

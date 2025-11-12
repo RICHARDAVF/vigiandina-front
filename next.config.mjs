@@ -2,7 +2,7 @@
 const nextConfig = {
   reactCompiler: true,
   transpilePackages: ['antd'],
-  output: 'export', // genera /out con HTML estático
+  output: 'export', 
   basePath: '/test',
 };
 
