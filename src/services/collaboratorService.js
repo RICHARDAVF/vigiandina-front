@@ -9,4 +9,13 @@ export const collaboratorService = {
         }catch(error){
             throw error
         }
-    },}
+    },
+    search:async(query)=>{
+        try{
+            const response = await api.get(API_ENDPOINTS.COLLABORATORS.SEARCH.replace("{query}",query))
+            return response
+        }catch(error){
+            throw error
+        }
+    }
+}

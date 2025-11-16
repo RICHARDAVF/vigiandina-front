@@ -69,34 +69,22 @@ const CompaniesPage = () => {
         },
     ];
 
-    if (loading) {
-        return (
-            <Card>
-                <Spin tip="Cargando empresas..." />
-            </Card>
-        );
-    }
-
-    if (error) {
-        return (
-            <Card>
-                <Alert message="Error" description={error} type="error" showIcon />
-            </Card>
-        );
-    }
 
     return (
-        <Card>
-            <Title level={2}>Lista de Empresas</Title>
-            <Table
-                columns={columns}
-                dataSource={data}
-                rowKey="id" 
-                pagination={{ pageSize: 10 }}
-                size='small'
-                scroll={{x:"max-content"}}
-            />
-        </Card>
+       <div>
+        <div>
+            <h3>Listado de empresas</h3>
+        </div>
+           <Table
+               columns={columns}
+               dataSource={data}
+               rowKey="id" 
+               pagination={{ pageSize: 10 }}
+               size='small'
+               scroll={{x:"max-content"}}
+           />
+       </div>
+       
     );
 };
 

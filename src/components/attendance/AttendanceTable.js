@@ -2,10 +2,14 @@
 import { Table, Button } from "antd";
 import { EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
-const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, onTableChange,callback }) => {
 
-    const useCallback = async(data,id)=>{
-        await callback(data,id)
+const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, onTableChange,callback1,callback2 }) => {
+
+    const executeCallback = async(data,id)=>{
+        await callback1(data,id)
+    }
+    const showModal=()=>{
+        callback2()
     }
     const columns = [
         {
@@ -41,7 +45,7 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
                     return (<Button size="small" style={{ backgroundColor: "gray", color: "white" }} onClick={()=>{
                         const hora_salida = dayjs().format('HH:mm:ss')
                         const fecha_salida =  dayjs().format('YYYY-MM-DD')
-                        useCallback({hora_salida,fecha_salida},row.id)
+                        executeCallback({hora_salida,fecha_salida},row.id)
                     }}>
                         Marcar
                     </Button>)
@@ -63,8 +67,8 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
             title: "#Parqueo",
             dataIndex: "n_parqueo",
             render: (_, row) => {
-                if (!row.n_parque) {
-                    return (<Button size="small" style={{ backgroundColor: "gray", color: "white" }}>
+                if (!row.n_parque && row.placa) {
+                    return (<Button size="small" onClick={showModal} style={{ backgroundColor: "gray", color: "white" }}>
                         Agregar
                     </Button>)
                 }
@@ -79,7 +83,7 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
         {
             title: "Acciones",
             key: "acciones",
-            render: (row, _) => (
+            render: (_, row) => (
                 <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
                     <EditOutlined style={{ color: "green" }} />
                     <DeleteOutlined style={{ color: "red" }} />
@@ -89,22 +93,24 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
         },
     ];
     return (
-        <Table
-            columns={columns}
-            dataSource={data}
-            rowKey={row => `${row.id}`}
-            loading={loading}
-            size="small"
-            pagination={{
-                current: currentPage,
-                pageSize: pageSize,
-                total: totalResults,
-                showSizeChanger: false,
-                showTotal: (total) => `Total ${total} registros`,
-            }}
-            scroll={{ x: "max-content" }}
-            onChange={onTableChange}
-        />
+        
+            <Table
+                columns={columns}
+                dataSource={data}
+                rowKey={row => `${row.id}`}
+                loading={loading}
+                size="small"
+                pagination={{
+                    current: currentPage,
+                    pageSize: pageSize,
+                    total: totalResults,
+                    showSizeChanger: false,
+                    showTotal: (total) => `Total ${total} registros`,
+                }}
+                scroll={{ x: "max-content" }}
+                onChange={onTableChange}
+            />
+      
     );
 };
 

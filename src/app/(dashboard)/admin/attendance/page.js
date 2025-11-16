@@ -1,13 +1,14 @@
 'use client';
 
 import { Input, Button } from "antd";
-import { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { AuthContext } from "@/context/AuthContext";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "@/services/api";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import AttendanceFormModal from "@/components/attendance/AttendanceFormModal";
 import { attendanceService } from "@/services/attendanceService";
+import AttendanceModalParking from "@/components/attendance/AttendanceModalParking";
 import { App } from "antd";
+import { parkingService } from "@/services/parkingService";
 export default function Attendace() {
     const { message } = App.useApp()
     const [data, setData] = useState([]);
@@ -18,12 +19,14 @@ export default function Attendace() {
     const searchInputRef = useRef(null);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen2,setIsModalOpen2] = useState(false)
+    const [parkin,setParking] = useState([]) 
     const pageSize = 15;
 
-    const fetchAttendanceData = useCallback(async (page) => {
+    const fetchAttendanceData = useCallback(async (page,query="") => {
         setLoading(true);
         try {
-            const response = await api.get(`/v1/attendance/list/?page=${page}&page_size=${pageSize}`);
+            const response = await api.get(`/v1/attendance/list/?page=${page}&page_size=${pageSize}&query=${query}`);
             setData(response.results);
             setTotalResults(response.count);
         } catch (error) {
@@ -34,7 +37,17 @@ export default function Attendace() {
             setLoading(false);
         }
     }, [pageSize]);
-
+    const listAvaialbleParking=async()=>{
+        const response = await parkingService.list_available()
+        if(!response.success){
+            message.error(response.error)
+            return
+        }
+        setParking(response.data)
+    }
+    useEffect(()=>{
+        listAvaialbleParking()
+    },[])
     const searchData = useCallback(async (text) => {
         const lowercasedText = text.toLowerCase();
         if (lowercasedText.trim() === "") {
@@ -50,6 +63,10 @@ export default function Attendace() {
                 company.includes(lowercasedText)
             );
         });
+        if(result.length===0){
+            fetchAttendanceData(currentPage,text)
+            return;
+        }
         setData(result);
     }, [data, fetchAttendanceData, currentPage]);
 
@@ -99,6 +116,9 @@ export default function Attendace() {
     const showModal = () => {
         setIsModalOpen(true);
     };
+    const showModal2 = () => {
+        setIsModalOpen2(true);
+    };
 
     const handleOk = () => {
 
@@ -121,22 +141,24 @@ export default function Attendace() {
     }
     return (
         <div>
-            <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
-                <Button onClick={showModal}>
-                    Agregar
-                </Button>
-                <Input
-                    ref={searchInputRef}
-                    placeholder="Buscar"
-                    value={searchText}
-                    onChange={(e) => {
-                        setSearchText(e.target.value);
-                        searchData(e.target.value);
-                    }}
-                    onFocus={() => setIsSearchInputFocused(true)}
-                    onBlur={() => setIsSearchInputFocused(false)}
-                    style={{ maxWidth: 300 }}
-                />
+            <div style={{display:"flex",flexWrap:"wrap",flexDirection:'row',justifyContent:"space-between"}}>
+                <h3>Listado Ingresos y Salidas</h3>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+                    <Button onClick={showModal}>
+                        Agregar
+                    </Button>
+                    <Input
+                        ref={searchInputRef}
+                        placeholder="Buscar"
+                        value={searchText}
+                        onChange={(e) => {
+                            setSearchText(e.target.value);
+                            searchData(e.target.value);
+                        }}
+                        onFocus={() => setIsSearchInputFocused(true)}
+                        onBlur={() => setIsSearchInputFocused(false)}
+                    />
+                </div>
             </div>
             <AttendanceTable
                 data={data}
@@ -145,16 +167,22 @@ export default function Attendace() {
                 totalResults={totalResults}
                 pageSize={pageSize}
                 onTableChange={handleTableChange}
-                callback={updateRegister}
+                callback1={updateRegister}
+                callback2={showModal2}
 
             />
             <AttendanceFormModal
                 isModalOpen={isModalOpen}
                 onCancel={handleCancel}
-                onOk={handleOk}
                 loading={loading}
                 fetchAttendanceData={fetchAttendanceData}
                 currentPage={currentPage}
+            />
+            <AttendanceModalParking
+            isOpen={isModalOpen2}
+            handleOk={()=>{()=>setIsModalOpen2(false)}}
+            handleCancel={()=>setIsModalOpen2(false)}
+            data={parkin}
             />
         </div>
     );

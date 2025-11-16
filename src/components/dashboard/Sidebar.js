@@ -13,7 +13,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { SidebarContext } from '@/context/SidebarContext';
 import { ROUTES } from '@/utils/constants';
-
+import { AuthContext } from '@/context/AuthContext';
 const { Sider } = Layout;
 
 const menuItems = [
@@ -26,6 +26,26 @@ const menuItems = [
     key: ROUTES.ADMIN_USUARIOS,
     icon: <UserOutlined />,
     label: 'Usuarios',
+  },
+  {
+    key: ROUTES.ADMIN_WORKPLACES,
+    icon: <BorderLeftOutlined />,
+    label: 'Puestos de vigilancia',
+  },
+  {
+    key: ROUTES.ADMIN_UNITYS,
+    icon: <BorderLeftOutlined />,
+    label: 'Unidades',
+  },
+  {
+    key: ROUTES.ADMIN_AREAS,
+    icon: <BorderLeftOutlined />,
+    label: 'Areas',
+  },
+  {
+    key: ROUTES.ADMIN_PARKING,
+    icon: <BorderLeftOutlined />,
+    label: 'Parqueos',
   },
   {
     key: ROUTES.ADMIN_COMPANIES,
@@ -68,10 +88,10 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { collapsed, mobileOpen, isMobile, setIsMobile, closeMobileSidebar } = useContext(SidebarContext);
-
+  const {user} = useContext(AuthContext)
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 900);
     };
 
     handleResize();

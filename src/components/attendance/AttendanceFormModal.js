@@ -7,25 +7,21 @@ import dayjs from 'dayjs';
 import { AuthContext } from "@/context/AuthContext";
 import { collaboratorService } from "@/services/collaboratorService";
 import { api } from "@/services/api";
-import BarcodeScanner from "./BarcodeScanner";
+import BarcodeScanner from "@/utils/BarcodeScanner";
 import { API_ENDPOINTS } from "@/utils/constants";
 
-const { Option } = Select;
 
-const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttendanceData, currentPage }) => {
+const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceData, currentPage }) => {
     const [form] = Form.useForm();
     const { message: messageApi } = App.useApp();
     const { user } = useContext(AuthContext);
-
     const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
-    const [isScanning, setIsScanning] = useState(false);
     const [collaborators, setCollaborators] = useState([]);
-    const [selectSearchValue, setSelectSearchValue] = useState('');
 
-    const fetchCollaborators = useCallback(async () => {
+    const fetchCollaborators = useCallback(async (query="") => {
         try {
-            const response = await api.get(`/v1/collaborators/list/?page_size=1000`);
-            setCollaborators(response.results);
+            const response = await collaboratorService.search(query);
+            setCollaborators(response.data);
         } catch (error) {
             console.error("Error fetching collaborators:", error);
             setCollaborators([]);
@@ -40,9 +36,9 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
                 hora_ingreso: dayjs(),
                 motivo: "LABORAR",
             });
-            fetchCollaborators();
+
         }
-    }, [isModalOpen, form, fetchCollaborators]);
+    }, [isModalOpen, form]);
 
     const sendBarcode = async (barcode_value) => {
         try {
@@ -61,6 +57,8 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
                 return false;
             }
             
+            // setIsScannerModalOpen(false)
+            // onCancel()
             messageApi.success(response.message || "Asistencia registrada exitosamente");
             return true;
         } catch (error) {
@@ -82,17 +80,8 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
             const response = await collaboratorService.create(payload);
             
             if (!response.success) {
-                let errorMessage = "Ocurrió un error desconocido.";
-                if (response.error) {
-                    if (typeof response.error === 'string') {
-                        errorMessage = response.error;
-                    } else if (response.error.non_field_errors && response.error.non_field_errors.length > 0) {
-                        errorMessage = response.error.non_field_errors[0];
-                    } else if (response.error.trabajador && response.error.trabajador.length > 0) {
-                        errorMessage = response.error.trabajador[0];
-                    }
-                }
-                messageApi.error(errorMessage);
+     
+                messageApi.error(response.error);
                 return;
             }
             
@@ -105,48 +94,26 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
         }
     };
 
-    const onScanSuccess = useCallback(async (decodedText, decodedResult) => {
-        if (isScanning) {
-            return;
-        }
-        setIsScanning(true);
+    const onScanSuccess = useCallback(async (decodedText) => {
 
         try {
-            // Primero enviar el código de barras
             const success = await sendBarcode(decodedText);
             
             if (success) {
-                // Solo actualizar UI si el envío fue exitoso
-                setIsScannerModalOpen(false);
-                
-                // Buscar el colaborador por documento y setear en el form
-                const colaborador = collaborators.find(c => c.documento === decodedText);
-                if (colaborador) {
-                    form.setFieldsValue({ 
-                        trabajador: { 
-                            value: colaborador.id, 
-                            label: `${colaborador.nombre} ${colaborador.apellidos} ${colaborador.documento}` 
-                        } 
-                    });
-                    setSelectSearchValue(colaborador.id);
-                } else {
-                    messageApi.warning("No se encontró un colaborador con ese documento");
-                }
-                
-                // Refrescar la tabla
                 fetchAttendanceData(currentPage);
+                
             }
         } catch (error) {
             console.error("Error en onScanSuccess:", error);
             messageApi.error("Error al procesar el escaneo");
-        } finally {
-            // Siempre restablecer isScanning después de un delay
-            setTimeout(() => {
-                setIsScanning(false);
-            }, 1000);
+        } 
+    }, [sendBarcode]);
+    const searchCollaborator = async (text) => {
+        const lowercasedText = text.trim()
+        if (lowercasedText.length > 3) {
+            fetchCollaborators(text)
         }
-    }, [isScanning, messageApi, form, collaborators, currentPage, fetchAttendanceData, sendBarcode]);
-
+    }
     return (
         <Modal
             open={isModalOpen}
@@ -172,20 +139,14 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
                         <Select
                             showSearch
                             placeholder="Selecciona un trabajador"
-                            optionFilterProp="children"
-                            filterOption={(input, option) => {
-                                const colaborador = collaborators.find(c => c.id === option.value);
-                                if (!colaborador) return false;
-                                const text = `${colaborador.nombre} ${colaborador.apellidos} ${colaborador.documento}`.toLowerCase();
-                                return text.includes(input.toLowerCase());
+                            filterOption={false}
+                            fieldNames={{"label":"fullname","value":"id"}}
+                            options={collaborators}
+                            onSearch={(value)=>{
+                                searchCollaborator(value)
                             }}
-                            labelInValue
+                            notFoundContent="No se encontraron resultados"
                         >
-                            {collaborators.map(colaborador => (
-                                <Option key={colaborador.id} value={colaborador.id}>
-                                    {colaborador.nombre} {colaborador.apellidos} - {colaborador.documento}
-                                </Option>
-                            ))}
                         </Select>
                     </Form.Item>
                     <Button 
@@ -241,22 +202,23 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttend
                 open={isScannerModalOpen}
                 onCancel={() => {
                     setIsScannerModalOpen(false);
-                    setIsScanning(false);
                 }}
                 footer={null}
-                width={600}
+                width={500}
+                centered
             >
-                {isScannerModalOpen && (
-                    <BarcodeScanner
-                        qrCodeContainerId="qr-code-full-region"
-                        onScanSuccess={onScanSuccess}
-                        onScanError={(errorMessage) => {
-                            console.warn(`Code scan error = ${errorMessage}`);
-                        }}
-                        isModalOpen={isScannerModalOpen}
-                        isScanning={isScanning}
-                    />
-                )}
+                <div style={{ width: '100%', height: 350 }}>
+              
+                <BarcodeScanner
+                    qrCodeContainerId="qr-code-full-region"
+                    onScanSuccess={onScanSuccess}
+                    onScanError={(errorMessage) => {
+                        console.warn(`Code scan error = ${errorMessage}`);
+                    }}
+                    isModalOpen={isModalOpen}
+                />
+                </div>
+          
             </Modal>
         </Modal>
     );

@@ -58,6 +58,7 @@ export default function UsuariosPage() {
         <Space size="small">
           <Button
             type="link"
+            size='small'
             icon={<EditOutlined />}
             onClick={() => console.log('Editar', record)}
           >
@@ -65,6 +66,7 @@ export default function UsuariosPage() {
           </Button>
           <Button
             type="link"
+            size='small'
             danger
             icon={<DeleteOutlined />}
             onClick={() => console.log('Eliminar', record)}

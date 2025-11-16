@@ -39,20 +39,19 @@ axiosInstance.interceptors.response.use(
         const refreshToken = storage.getRefreshToken();
         if (refreshToken) {
           const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh`,
-            { refreshToken }
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/refresh/`,
+            { refresh:refreshToken }
           );
+          const { access } = response.data.tokens;
+          storage.setToken(access);
 
-          const { token } = response.data;
-          storage.setToken(token);
-
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${access}`;
           return axiosInstance(originalRequest);
         }
       } catch (refreshError) {
         storage.clearAll();
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = '/test/login';
         }
         return Promise.reject(refreshError);
       }
