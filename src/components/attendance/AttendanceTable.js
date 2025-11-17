@@ -21,7 +21,7 @@ const AttendanceTable = ({
     }
     const getDataEdit=async(id)=>{
         const response = await attendanceService.get_update(id)
-        isModalOpenEdit(response.data)
+        // isModalOpenEdit(response.data)
 
     }
 
