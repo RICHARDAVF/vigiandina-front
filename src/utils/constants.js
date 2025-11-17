@@ -14,7 +14,10 @@ export const ROUTES = {
   ADMIN_AREAS: '/admin/areas',
   ADMIN_PARKING: '/admin/parking',
 };
-
+export const PERMISSIONS = {
+  PERMITTED:true,
+  NO_PERMITTED:false
+}
 export const API_ENDPOINTS = {
   AUTH:{
     LOGIN:"v1/auth/login/",
@@ -81,3 +84,4 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: 'No autorizado',
   SERVER_ERROR: 'Error del servidor',
 };
+
