@@ -2,20 +2,40 @@
 import { Table, Button } from "antd";
 import { EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
+import { attendanceService } from "@/services/attendanceService";
 
-const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, onTableChange,callback1,callback2 }) => {
-
+const AttendanceTable = ({ 
+    data, 
+    loading, 
+    currentPage, 
+    totalResults,
+    pageSize,
+    onTableChange,
+    callback1,
+    callback2,isModalOpenEdit }) => {
     const executeCallback = async(data,id)=>{
         await callback1(data,id)
     }
     const showModal=()=>{
         callback2()
     }
+    const getDataEdit=async(id)=>{
+        const response = await attendanceService.get_update(id)
+        isModalOpenEdit(response.data)
+
+    }
+
     const columns = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
+         {
+            title: "Acciones",
+            key: "acciones",
+            render: (_, row) => (
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
+                    <EditOutlined style={{ color: "green" }} onClick={()=>getDataEdit(row.id)} />
+                    <DeleteOutlined style={{ color: "red" }} />
+                    <SearchOutlined style={{ color: "blue" }} />
+                </div>
+            )
         },
         {
             title: "Trabajador",
@@ -80,20 +100,10 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
             dataIndex: "motivo",
             key: "motivo",
         },
-        {
-            title: "Acciones",
-            key: "acciones",
-            render: (_, row) => (
-                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
-                    <EditOutlined style={{ color: "green" }} />
-                    <DeleteOutlined style={{ color: "red" }} />
-                    <SearchOutlined style={{ color: "blue" }} />
-                </div>
-            )
-        },
+       
     ];
     return (
-        
+
             <Table
                 columns={columns}
                 dataSource={data}
@@ -110,6 +120,7 @@ const AttendanceTable = ({ data, loading, currentPage, totalResults, pageSize, o
                 scroll={{ x: "max-content" }}
                 onChange={onTableChange}
             />
+            
       
     );
 };

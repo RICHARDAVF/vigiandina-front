@@ -9,9 +9,15 @@ import { collaboratorService } from "@/services/collaboratorService";
 import { api } from "@/services/api";
 import BarcodeScanner from "@/utils/BarcodeScanner";
 import { API_ENDPOINTS } from "@/utils/constants";
+import { attendanceService } from "@/services/attendanceService";
 
 
-const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceData, currentPage }) => {
+const AttendanceFormModal = ({ 
+    isModalOpen, 
+    onCancel, 
+    loading, 
+    fetchAttendanceData, 
+    currentPage,data }) => {
     const [form] = Form.useForm();
     const { message: messageApi } = App.useApp();
     const { user } = useContext(AuthContext);
@@ -29,17 +35,27 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceDa
     }, []);
 
     useEffect(() => {
-        if (isModalOpen) {
+        if (isModalOpen ) {
             form.resetFields();
+            const newdata = {}
+            if(data?.trabajador){
+                newdata["fecha_ingreso"] = dayjs(data["fecha_ingreso"])
+                newdata["hora_ingreso"] = dayjs(data["hora_ingreso"],"HH:mm:ss")
+                newdata["trabajador"] = {"label":data["fullname"],"value":data["trabajador"]}
+                newdata["motivo"] = data["motivo"]
+                newdata["placa"] = data["placa"]
+
+            }
             form.setFieldsValue({
                 fecha_ingreso: dayjs(),
                 hora_ingreso: dayjs(),
                 motivo: "LABORAR",
+                ...newdata
+
             });
 
         }
     }, [isModalOpen, form]);
-
     const sendBarcode = async (barcode_value) => {
         try {
             const fecha_ingreso = dayjs().format('YYYY-MM-DD')
@@ -56,9 +72,7 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceDa
                 messageApi.error(response.error || "Error al registrar la asistencia");
                 return false;
             }
-            
-            // setIsScannerModalOpen(false)
-            // onCancel()
+
             messageApi.success(response.message || "Asistencia registrada exitosamente");
             return true;
         } catch (error) {
@@ -75,10 +89,9 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceDa
                 usuario: user.id,
                 fecha_ingreso: values.fecha_ingreso ? values.fecha_ingreso.format('YYYY-MM-DD') : null,
                 hora_ingreso: values.hora_ingreso ? values.hora_ingreso.format('HH:mm:ss') : null,
-                trabajador: values.trabajador.value,
+                trabajador: values.trabajador
             };
-            const response = await collaboratorService.create(payload);
-            
+            const response = await attendanceService.create(payload); 
             if (!response.success) {
      
                 messageApi.error(response.error);
@@ -89,7 +102,7 @@ const AttendanceFormModal = ({ isModalOpen, onCancel, loading, fetchAttendanceDa
             onCancel();
             fetchAttendanceData(currentPage);
         } catch (error) {
-            console.error("Error submitting attendance data:", error);
+            
             messageApi.error("Error al enviar los datos de asistencia");
         }
     };

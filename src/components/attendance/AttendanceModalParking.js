@@ -3,7 +3,6 @@ import { Select, Form } from "antd"
 import { Modal } from "antd"
 
 const AttendanceModalParking = ({ isOpen, handleOk, handleCancel, data }) => {
-    const form = Form.useForm()
     return (
         <Modal
             open={isOpen}

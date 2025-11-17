@@ -21,6 +21,8 @@ export default function Attendace() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalOpen2,setIsModalOpen2] = useState(false)
     const [parkin,setParking] = useState([]) 
+    const [isModeEdit,setIsModeEdit] = useState(false)
+    const [formData,setFormData] = useState({})
     const pageSize = 15;
 
     const fetchAttendanceData = useCallback(async (page,query="") => {
@@ -139,6 +141,12 @@ export default function Attendace() {
         fetchAttendanceData(currentPage)
 
     }
+    const isOpenModalEdit=(data)=>{
+        setFormData(data)
+        setIsModeEdit(true)
+        setIsModalOpen(true)
+        
+    }
     return (
         <div>
             <div style={{display:"flex",flexWrap:"wrap",flexDirection:'row',justifyContent:"space-between"}}>
@@ -169,6 +177,7 @@ export default function Attendace() {
                 onTableChange={handleTableChange}
                 callback1={updateRegister}
                 callback2={showModal2}
+                isModalOpenEdit={isOpenModalEdit}
 
             />
             <AttendanceFormModal
@@ -177,6 +186,7 @@ export default function Attendace() {
                 loading={loading}
                 fetchAttendanceData={fetchAttendanceData}
                 currentPage={currentPage}
+                data={formData}
             />
             <AttendanceModalParking
             isOpen={isModalOpen2}

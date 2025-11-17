@@ -17,5 +17,13 @@ export const attendanceService = {
         }catch(error){
             throw error
         }
+    },
+    get_update:async(id)=>{
+        try{
+            const response = await api.get(API_ENDPOINTS.ATTENDANCE.PATCH.replace("{pk}",id))
+            return response
+        }catch(error){
+            throw error
+        }
     }
 }
