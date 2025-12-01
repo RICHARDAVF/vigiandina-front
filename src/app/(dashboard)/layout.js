@@ -12,15 +12,15 @@ export default function DashboardLayout({ children }) {
     <AuthGuard>
       <Layout style={{ minHeight: '100vh' }}>
         <Sidebar />
-        <Layout>
+        <Layout style={{ height: '100vh' }}>
           <Header />
           <Content
             style={{
               margin: '24px 16px',
               padding: 24,
-              minHeight: 280,
               background: '#fff',
               borderRadius: 8,
+              overflow: 'auto',
             }}
           >
             {children}

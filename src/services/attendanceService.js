@@ -1,28 +1,36 @@
 import { api } from "./api";
 import { API_ENDPOINTS } from "@/utils/constants";
 export const attendanceService = {
-    create:async(data)=>{
-        try{
-            const response = await api.post(API_ENDPOINTS.ATTENDANCE.CREATE,data)
+    list: async (page, pageSize, query) => {
+        try {
+            const url = API_ENDPOINTS.ATTENDANCE.LIST + `?page=${page}&page_size=${pageSize}&query=${query || ''}`;
+            const response = await api.get(url)
             return response
-            
-        }catch(error){
+        } catch (error) {
             throw error
         }
     },
-    patch:async(data,id)=>{
-        try{
-            const response = await api.patch(API_ENDPOINTS.ATTENDANCE.PATCH.replace("{pk}",id),data)
+    create: async (data) => {
+        try {
+            const response = await api.post(API_ENDPOINTS.ATTENDANCE.CREATE, data)
             return response
-        }catch(error){
+        } catch (error) {
             throw error
         }
     },
-    get_update:async(id)=>{
-        try{
-            const response = await api.get(API_ENDPOINTS.ATTENDANCE.PATCH.replace("{pk}",id))
+    update: async (id, data) => {
+        try {
+            const response = await api.patch(API_ENDPOINTS.ATTENDANCE.UPDATE.replace("{pk}", id), data)
             return response
-        }catch(error){
+        } catch (error) {
+            throw error
+        }
+    },
+    delete: async (id) => {
+        try {
+            const response = await api.delete(API_ENDPOINTS.ATTENDANCE.DELETE.replace("{pk}", id))
+            return response
+        } catch (error) {
             throw error
         }
     }

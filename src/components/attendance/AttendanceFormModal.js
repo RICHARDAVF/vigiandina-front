@@ -1,240 +1,215 @@
 'use client';
 
-import { Form, Input, DatePicker, TimePicker, Select, Button, Modal, App } from "antd";
-import { useState, useContext, useCallback, useEffect } from "react";
-import { QrcodeOutlined } from "@ant-design/icons";
-import dayjs from 'dayjs';
-import { AuthContext } from "@/context/AuthContext";
-import { collaboratorService } from "@/services/collaboratorService";
-import { api } from "@/services/api";
-import BarcodeScanner from "@/utils/BarcodeScanner";
-import { API_ENDPOINTS } from "@/utils/constants";
+import { Form, Input, Modal, Select, App, Row, Col, DatePicker, TimePicker } from "antd";
+import { useEffect, useState } from "react";
 import { attendanceService } from "@/services/attendanceService";
+import { collaboratorService } from "@/services/collaboratorService";
+import { parkingService } from "@/services/parkingService";
+import dayjs from 'dayjs';
 
-
-const AttendanceFormModal = ({ 
-    isModalOpen, 
-    onCancel, 
-    loading, 
-    fetchAttendanceData, 
-    currentPage,data }) => {
+export const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetchAttendanceData, editingAttendance }) => {
     const [form] = Form.useForm();
     const { message: messageApi } = App.useApp();
-    const { user } = useContext(AuthContext);
-    const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
     const [collaborators, setCollaborators] = useState([]);
-
-    const fetchCollaborators = useCallback(async (query="") => {
-        try {
-            const response = await collaboratorService.search(query);
-            setCollaborators(response.data);
-        } catch (error) {
-            console.error("Error fetching collaborators:", error);
-            setCollaborators([]);
-        }
-    }, []);
+    const [parkings, setParkings] = useState([]);
 
     useEffect(() => {
-        if (isModalOpen ) {
-            form.resetFields();
-            const newdata = {}
-            if(data?.trabajador){
-                newdata["fecha_ingreso"] = dayjs(data["fecha_ingreso"])
-                newdata["hora_ingreso"] = dayjs(data["hora_ingreso"],"HH:mm:ss")
-                newdata["trabajador"] = {"label":data["fullname"],"value":data["trabajador"]}
-                newdata["motivo"] = data["motivo"]
-                newdata["placa"] = data["placa"]
+        if (isModalOpen) {
+            const fetchOptions = async () => {
+                try {
+                    // Always fetch parkings
+                    const parkingsPromise = parkingService.list_available();
 
-            }
-            form.setFieldsValue({
-                fecha_ingreso: dayjs(),
-                hora_ingreso: dayjs(),
-                motivo: "LABORAR",
-                ...newdata
+                    let collaboratorOptions = [];
 
-            });
+                    // Conditionally fetch collaborators
+                    if (editingAttendance) {
+                        // EDIT MODE: Don't fetch the full list. Use the collaborator from the record.
+                        if (editingAttendance.collaborator) {
+                            const specificCollaborator = editingAttendance.collaborator;
+                            const compatibleCollaborator = {
+                                id: specificCollaborator.id,
+                                nombre: specificCollaborator.fullname,
+                                apellidos: '',
+                                documento: ''
+                            };
+                            collaboratorOptions = [compatibleCollaborator];
+                        }
+                    } else {
+                        // CREATE MODE: Fetch the full list for the dropdown.
+                        const collaboratorsRes = await collaboratorService.get(1, 100, "");
+                        collaboratorOptions = collaboratorsRes.results || collaboratorsRes;
+                    }
 
+                    const parkingsRes = await parkingsPromise;
+                    const parkingOptions = parkingsRes.results || parkingsRes;
+
+                    setCollaborators(collaboratorOptions);
+                    setParkings(parkingOptions);
+
+                } catch (error) {
+                    console.error("Error fetching options:", error);
+                    messageApi.error("Error al cargar opciones");
+                }
+            };
+            fetchOptions();
         }
-    }, [isModalOpen, form]);
-    const sendBarcode = async (barcode_value) => {
-        try {
-            const fecha_ingreso = dayjs().format('YYYY-MM-DD')
-            const hora_ingreso = dayjs().format('HH:mm:ss')
-            const response = await api.post(API_ENDPOINTS.ATTENDANCE.CREATE, 
-            {
-                barcode_value,
-                usuario: user.id,
-                fecha_ingreso,
-                hora_ingreso
-            });
-            
-            if (!response.success) {
-                messageApi.error(response.error || "Error al registrar la asistencia");
-                return false;
-            }
+    }, [isModalOpen, editingAttendance, messageApi]);
 
-            messageApi.success(response.message || "Asistencia registrada exitosamente");
-            return true;
-        } catch (error) {
-            console.error("Error en sendBarcode:", error);
-            messageApi.error("Error de conexión al registrar asistencia");
-            return false;
+    useEffect(() => {
+        if (isModalOpen) {
+            if (editingAttendance && collaborators.length > 0) {
+                form.setFieldsValue({
+                    ...editingAttendance,
+                    // The form field is named 'trabajador', set it with the collaborator's ID
+                    trabajador: editingAttendance.collaborator?.id,
+                    n_parqueo: editingAttendance.n_parqueo?.id || editingAttendance.n_parqueo,
+                    fecha_ingreso: editingAttendance.fecha_ingreso ? dayjs(editingAttendance.fecha_ingreso) : null,
+                    hora_ingreso: editingAttendance.hora_ingreso ? dayjs(editingAttendance.hora_ingreso, 'HH:mm:ss') : null,
+                    fecha_salida: editingAttendance.fecha_salida ? dayjs(editingAttendance.fecha_salida) : null,
+                    hora_salida: editingAttendance.hora_salida ? dayjs(editingAttendance.hora_salida, 'HH:mm:ss') : null,
+                });
+            } else {
+                form.resetFields();
+            }
         }
-    };
+    }, [isModalOpen, editingAttendance, collaborators, parkings, form]);
 
     const onFinish = async (values) => {
         try {
+            let response;
             const payload = {
                 ...values,
-                usuario: user.id,
                 fecha_ingreso: values.fecha_ingreso ? values.fecha_ingreso.format('YYYY-MM-DD') : null,
                 hora_ingreso: values.hora_ingreso ? values.hora_ingreso.format('HH:mm:ss') : null,
-                trabajador: values.trabajador
+                fecha_salida: values.fecha_salida ? values.fecha_salida.format('YYYY-MM-DD') : null,
+                hora_salida: values.hora_salida ? values.hora_salida.format('HH:mm:ss') : null,
             };
-            const response = await attendanceService.create(payload); 
+
+            if (editingAttendance) {
+                response = await attendanceService.update(editingAttendance.id, payload);
+            } else {
+                // Create is handled differently in this module (often via barcode), but standard create can be supported
+                response = await attendanceService.create(payload);
+            }
+
             if (!response.success) {
-     
-                messageApi.error(response.error);
+                messageApi.error(response.error || "Error al guardar el registro");
                 return;
             }
-            
+
             messageApi.success(response.message);
             onCancel();
-            fetchAttendanceData(currentPage);
+            form.resetFields();
+            fetchAttendanceData();
+
         } catch (error) {
-            
-            messageApi.error("Error al enviar los datos de asistencia");
+            messageApi.error("Error al enviar los datos");
         }
     };
 
-    const onScanSuccess = useCallback(async (decodedText) => {
-
-        try {
-            const success = await sendBarcode(decodedText);
-            
-            if (success) {
-                fetchAttendanceData(currentPage);
-                
-            }
-        } catch (error) {
-            console.error("Error en onScanSuccess:", error);
-            messageApi.error("Error al procesar el escaneo");
-        } 
-    }, [sendBarcode]);
-    const searchCollaborator = async (text) => {
-        const lowercasedText = text.trim()
-        if (lowercasedText.length > 3) {
-            fetchCollaborators(text)
-        }
-    }
     return (
         <Modal
             open={isModalOpen}
-            title="Registrar Asistencia"
+            title={editingAttendance ? "Editar Registro" : "Nuevo Registro"}
             onCancel={onCancel}
             onOk={() => form.submit()}
             confirmLoading={loading}
-            okText="Registrar"
+            okText={editingAttendance ? "Actualizar" : "Crear"}
             cancelText="Cancelar"
+            centered
+            width={800}
         >
             <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
             >
-                <div style={{ flexDirection: "row", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: '10px' }}>
-                    <Form.Item
-                        name="trabajador"
-                        label="Trabajador"
-                        rules={[{ required: true, message: 'Por favor selecciona un trabajador!' }]}
-                        style={{ flex: 1, marginBottom: 0 }}
-                    >
-                        <Select
-                            showSearch
-                            placeholder="Selecciona un trabajador"
-                            filterOption={false}
-                            fieldNames={{"label":"fullname","value":"id"}}
-                            options={collaborators}
-                            onSearch={(value)=>{
-                                searchCollaborator(value)
-                            }}
-                            notFoundContent="No se encontraron resultados"
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item
+                            name="trabajador"
+                            label="Trabajador"
+                            rules={[{ required: true, message: 'Seleccione trabajador' }]}
                         >
-                        </Select>
-                    </Form.Item>
-                    <Button 
-                        onClick={() => {
-                            setIsScannerModalOpen(true);
-                        }} 
-                        style={{ marginTop: 30 }} 
-                        icon={<QrcodeOutlined />}
-                        type="primary"
-                    />
-                </div>
-
-                <Form.Item
-                    name="fecha_ingreso"
-                    label="Fecha de Ingreso"
-                    rules={[{ required: true, message: 'Por favor selecciona la fecha de ingreso!' }]}
-                >
-                    <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-                </Form.Item>
-
-                <Form.Item
-                    name="hora_ingreso"
-                    label="Hora de Ingreso"
-                    rules={[{ required: true, message: 'Por favor selecciona la hora de ingreso!' }]}
-                >
-                    <TimePicker style={{ width: '100%' }} format="HH:mm:ss" />
-                </Form.Item>
-
-                <Form.Item
-                    name="motivo"
-                    label="Motivo (Opcional)"
-                >
-                    <Input.TextArea rows={2} />
-                </Form.Item>
-
-                <Form.Item
-                    name="vehiculo"
-                    label="Vehículo (Opcional)"
-                >
-                    <Input />
-                </Form.Item>
-
-                <Form.Item
-                    name="placa"
-                    label="Placa (Opcional)"
-                >
-                    <Input />
-                </Form.Item>
+                            <Select
+                                placeholder="Seleccione trabajador"
+                                fieldNames={{ label: 'nombre', value: 'id' }} // Assuming name is enough, or construct label
+                                options={collaborators.map(c => ({ ...c, nombre: `${c.nombre} ${c.apellidos} - ${c.documento}` }))}
+                                showSearch
+                                filterOption={(input, option) =>
+                                    (option?.nombre ?? '').toLowerCase().includes(input.toLowerCase())
+                                }
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            name="placa"
+                            label="Placa Vehículo"
+                        >
+                            <Input placeholder="Placa" />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Row gutter={16}>
+                    <Col span={6}>
+                        <Form.Item
+                            name="fecha_ingreso"
+                            label="Fecha Ingreso"
+                        >
+                            <DatePicker style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item
+                            name="hora_ingreso"
+                            label="Hora Ingreso"
+                        >
+                            <TimePicker style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item
+                            name="fecha_salida"
+                            label="Fecha Salida"
+                        >
+                            <DatePicker style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item
+                            name="hora_salida"
+                            label="Hora Salida"
+                        >
+                            <TimePicker style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item
+                            name="n_parqueo"
+                            label="Parqueo"
+                        >
+                            <Select
+                                placeholder="Seleccione parqueo"
+                                fieldNames={{ label: 'numero', value: 'id' }}
+                                options={parkings}
+                                allowClear
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            name="motivo"
+                            label="Motivo"
+                        >
+                            <Input placeholder="Motivo" />
+                        </Form.Item>
+                    </Col>
+                </Row>
             </Form>
-
-            <Modal
-                title="Escanear Código de Barras"
-                open={isScannerModalOpen}
-                onCancel={() => {
-                    setIsScannerModalOpen(false);
-                }}
-                footer={null}
-                width={500}
-                centered
-            >
-                <div style={{ width: '100%', height: 350 }}>
-              
-                <BarcodeScanner
-                    qrCodeContainerId="qr-code-full-region"
-                    onScanSuccess={onScanSuccess}
-                    onScanError={(errorMessage) => {
-                        console.warn(`Code scan error = ${errorMessage}`);
-                    }}
-                    isModalOpen={isModalOpen}
-                />
-                </div>
-          
-            </Modal>
         </Modal>
     );
 };
-
-export default AttendanceFormModal;

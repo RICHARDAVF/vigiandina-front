@@ -2,11 +2,11 @@ import { Table } from "antd";
 import Button from "../ui/Buttons";
 import dayjs from 'dayjs';
 
-export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTableChange,callback})=>{
-    const executeCallback =async(data,id)=>{
-        await callback(data,id)
+export const VisitsTable = ({ data, loading, currentPage, totalResults, pageSize, onTableChange, callback, onEdit, onDelete }) => {
+    const executeCallback = async (data, id) => {
+        await callback(data, id)
     }
-   const columns = [
+    const columns = [
         {
             title: 'ID',
             dataIndex: 'id',
@@ -15,11 +15,11 @@ export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTab
         {
             title: 'Estado',
             key: 'status',
-            render:(_,row)=>{
-                if(row.estado=="3"){
+            render: (_, row) => {
+                if (row.estado == "3") {
                     return "FINALIZADO"
                 }
-                if(row.estado=="2"){
+                if (row.estado == "2") {
                     return "EN PROCESO"
                 }
                 return "PROGRAMADO"
@@ -28,8 +28,8 @@ export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTab
         {
             title: 'Nombres y Apellidos',
             key: 'fullname',
-            dataIndex:"fullname"
-           
+            dataIndex: "fullname"
+
         },
 
         {
@@ -40,17 +40,17 @@ export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTab
         {
             title: 'Empresa',
             key: 'empresa',
-            render:(_,row)=>((row.empresa && row.empresa.length>20)?row.empresa.slice(0,20)+'...':row.empresa),
+            render: (_, row) => ((row.empresa && row.empresa.length > 20) ? row.empresa.slice(0, 20) + '...' : row.empresa),
         },
         {
             title: 'F. y H. Ingreso',
-            render:(_,row)=>{
+            render: (_, row) => {
                 let fulldate = ''
-                if(row.fecha){
-                    fulldate=fulldate+`${row.fecha}`
+                if (row.fecha) {
+                    fulldate = fulldate + `${row.fecha}`
                 }
-                if(row.h_inicio){
-                    fulldate=fulldate+` ${row.h_inicio}`
+                if (row.h_inicio) {
+                    fulldate = fulldate + ` ${row.h_inicio}`
                 }
                 return fulldate
             }
@@ -59,33 +59,33 @@ export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTab
         },
         {
             title: 'F. y H. Salida',
-            render:(_,row)=>{
+            render: (_, row) => {
                 let fulldate = ''
-                if(!row.h_salida){
+                if (!row.h_salida) {
                     return (
                         <Button
-                        onClick={()=>{
-                            const hora_salida = dayjs().format('HH:mm:ss')
-                            const fecha_salida =  dayjs().format('YYYY-MM-DD')
-                            executeCallback({hora_salida,fecha_salida},row.id)
-                        }} 
-                        size="small" style={{backgroundColor:'gray',color:'white'}}>
+                            onClick={() => {
+                                const hora_salida = dayjs().format('HH:mm:ss')
+                                const fecha_salida = dayjs().format('YYYY-MM-DD')
+                                executeCallback({ hora_salida, fecha_salida }, row.id)
+                            }}
+                            size="small" style={{ backgroundColor: 'gray', color: 'white' }}>
                             Marcar
                         </Button>
                     )
                 }
-                
-                fulldate=row.fecha_salida?row.fecha_salida+` ${row.h_salida}`:'0000-00-00'+` ${row.h_salida}`
-                
+
+                fulldate = row.fecha_salida ? row.fecha_salida + ` ${row.h_salida}` : '0000-00-00' + ` ${row.h_salida}`
+
                 return fulldate
             },
             key: 'fecha_hora_salida',
         },
-       
-        
+
+
         {
             title: 'A quien visita',
-            dataIndex: 'person_you_visit',
+            dataIndex: ['person_you_visit','fullname'],
             key: 'person_you_visit',
         },
         {
@@ -94,14 +94,25 @@ export  const VisitsTable=({data,loading,currentPage,totalResults,pageSize,onTab
             key: 'motivo',
         },
     ];
+    // Add actions column for edit and delete
+    columns.push({
+        title: 'Acciones',
+        key: 'actions',
+        render: (_, row) => (
+            <>
+                <Button type="link" size="small" onClick={() => onEdit(row)} style={{ marginRight: 8 }}>Editar</Button>
+                <Button type="link" size="small" danger onClick={() => onDelete(row.id)}>Eliminar</Button>
+            </>
+        ),
+    });
     return (
         <Table
-        columns={columns}
-        dataSource={data}
-        rowKey={(row)=>`${row.id}`}
-        loading={loading}
-        size="small"
-        pagination={{
+            columns={columns}
+            dataSource={data}
+            rowKey={(row) => `${row.id}`}
+            loading={loading}
+            size="small"
+            pagination={{
                 current: currentPage,
                 pageSize: pageSize,
                 total: totalResults,

@@ -1,15 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Table, Button, Space, Tag, Input, Typography, message } from 'antd';
+import { Table, Button, Space, Tag, Input, Typography, App, Modal } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { userService } from '@/services/userService';
+import { UserFormModal } from '@/components/users/UserFormModal';
+
 const { Title } = Typography;
 
 
 export default function UsuariosPage() {
+  const { message, modal } = App.useApp();
   const [searchText, setSearchText] = useState('');
   const [data, setData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const columns = [
     {
       title: 'ID',
@@ -47,7 +54,7 @@ export default function UsuariosPage() {
       key: 'is_active',
       render: (status) => (
         <Tag color={status ? 'success' : 'default'}>
-          {status?'Activo':"Inactivo"}
+          {status ? 'Activo' : "Inactivo"}
         </Tag>
       ),
     },
@@ -60,7 +67,7 @@ export default function UsuariosPage() {
             type="link"
             size='small'
             icon={<EditOutlined />}
-            onClick={() => console.log('Editar', record)}
+            onClick={() => handleEdit(record)}
           >
             Editar
           </Button>
@@ -69,7 +76,7 @@ export default function UsuariosPage() {
             size='small'
             danger
             icon={<DeleteOutlined />}
-            onClick={() => console.log('Eliminar', record)}
+            onClick={() => handleDelete(record)}
           >
             Eliminar
           </Button>
@@ -77,32 +84,71 @@ export default function UsuariosPage() {
       ),
     },
   ];
-  useEffect(()=>{
+
+  useEffect(() => {
     userList()
-  },[])
+  }, [])
+
   const handleSearch = (value) => {
     setSearchText(value);
-    const filtered = mockData.filter(
-      (item) =>
-        item.name.toLowerCase().includes(value.toLowerCase()) ||
-        item.email.toLowerCase().includes(value.toLowerCase())
-    );
-    setData(filtered);
+    // TODO: Implement server-side search or client-side filtering if needed
   };
-  const userList=async()=>{
-    const response = await userService.list()
-    if(response.success){
-      setData(response.data)
-    }else{
-      message.error(response.error)
+
+  const userList = async () => {
+    setLoading(true);
+    try {
+      const response = await userService.list()
+      if (response.success) {
+        setData(response.data)
+      } else {
+        message.error(response.error)
+      }
+    } catch (error) {
+      message.error("Error al cargar usuarios");
+    } finally {
+      setLoading(false);
     }
   }
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (user) => {
+    modal.confirm({
+      title: '¿Estás seguro de eliminar este usuario?',
+      content: `Se eliminará el usuario ${user.username}`,
+      okText: 'Sí, eliminar',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          const response = await userService.delete(user.id);
+          if (response.success) {
+            message.success(response.message);
+            userList();
+          } else {
+            message.error(response.error || "Error al eliminar usuario");
+          }
+        } catch (error) {
+          message.error("Error al eliminar usuario");
+        }
+      },
+    });
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setEditingUser(null);
+  };
+
   return (
     <div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Title level={2} style={{ margin: 0 }}>Usuarios</Title>
-          <Button type="primary" icon={<PlusOutlined />}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingUser(null); setIsModalOpen(true); }}>
             Nuevo Usuario
           </Button>
         </div>
@@ -118,8 +164,9 @@ export default function UsuariosPage() {
         <Table
           columns={columns}
           dataSource={data}
-          rowKey={(row)=>`${row.id}`}
+          rowKey={(row) => `${row.id}`}
           size='small'
+          loading={loading}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -127,6 +174,13 @@ export default function UsuariosPage() {
           }}
         />
       </Space>
+      <UserFormModal
+        isModalOpen={isModalOpen}
+        onCancel={handleModalCancel}
+        loading={loading}
+        fetchUsersData={userList}
+        editingUser={editingUser}
+      />
     </div>
   );
 }

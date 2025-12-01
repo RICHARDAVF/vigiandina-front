@@ -31,9 +31,9 @@ const AttendanceTable = ({
             key: "acciones",
             render: (_, row) => (
                 <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
-                    <EditOutlined style={{ color: "green" }} onClick={()=>getDataEdit(row.id)} />
-                    <DeleteOutlined style={{ color: "red" }} />
-                    <SearchOutlined style={{ color: "blue" }} />
+                    <EditOutlined size="small" style={{ color: "green" }} onClick={()=>getDataEdit(row.id)} />
+                    <DeleteOutlined size="small" style={{ color: "red" }} />
+                    <SearchOutlined size="small" style={{ color: "blue" }} />
                 </div>
             )
         },
