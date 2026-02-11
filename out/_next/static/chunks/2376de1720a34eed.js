@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,928685,e=>{"use strict";e.i(247167);var t=e.i(271645),i=e.i(757025),r=e.i(9583);function c(){return(c=Object.assign.bind()).apply(this,arguments)}let n=t.forwardRef((e,n)=>t.createElement(r.default,c({},e,{ref:n,icon:i.default})));e.s(["SearchOutlined",0,n],928685)}]);

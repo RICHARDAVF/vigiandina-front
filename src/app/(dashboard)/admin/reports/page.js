@@ -57,10 +57,10 @@ export default function ReportsPage() {
     }
   };
 
-  const handleDownload = (format) => {
+  const handleDownload = async(format) => {
     const params = {
       report_type: reportType,
-      format: format, // 'pdf' or 'csv'
+      format_type: format, // 'pdf' or 'csv'
     };
     if (dateRange.length === 2 && dateRange[0] && dateRange[1]) {
       params.start_date = dateRange[0].format('YYYY-MM-DD');
@@ -69,7 +69,9 @@ export default function ReportsPage() {
     if (selectedCompany) {
       params.company_id = selectedCompany;
     }
-    dashboardService.downloadReport(params);
+    setLoading(true);
+    await dashboardService.downloadReport(params);
+    setLoading(false);
   };
 
   const getIngresoSalidaColumns = () => [

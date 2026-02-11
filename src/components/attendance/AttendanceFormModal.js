@@ -71,6 +71,12 @@ export const AttendanceFormModal = ({ isModalOpen, onCancel, onOk, loading, fetc
                 });
             } else {
                 form.resetFields();
+                const hora_ingreso = dayjs();
+                const fecha_ingreso = dayjs();
+                form.setFieldsValue({
+                    fecha_ingreso,
+                    hora_ingreso,
+                });
             }
         }
     }, [isModalOpen, editingAttendance, collaborators, parkings, form]);

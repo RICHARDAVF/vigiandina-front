@@ -1,5 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '@/utils/constants';
+import axiosInstance from '@/lib/axios';
 
 export const dashboardService = {
   getDashboardStats: async () => {
@@ -74,8 +75,8 @@ export const dashboardService = {
 
   downloadReport: async (params) => { // Make it async
     try {
-      // Use api.get to make an authenticated request
-      const response = await api.get(API_ENDPOINTS.REPORTS.DOWNLOAD, {
+      // Use axiosInstance to get the full response including headers
+      const response = await axiosInstance.get(API_ENDPOINTS.REPORTS.DOWNLOAD, {
         params,
         responseType: 'blob', // Important: tell axios to expect a binary response
       });
@@ -92,16 +93,17 @@ export const dashboardService = {
 
 
       // Extract filename from Content-Disposition header if available
-      const contentDisposition = response.headers['content-disposition'];
+      const contentDisposition = response.headers?.['content-disposition'];
+
       let filename = 'reporte';
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        const filenameMatch = contentDisposition.match(/filename\s*=\s*"?([^";]+)"?/i);
         if (filenameMatch && filenameMatch[1]) {
           filename = filenameMatch[1];
         }
       } else {
         // Fallback filename based on format
-        filename = `reporte.${params.format}`;
+        filename = `reporte.${params.format_type}`;
       }
 
       // Create a Blob from the response data

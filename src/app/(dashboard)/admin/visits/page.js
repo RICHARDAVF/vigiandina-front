@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import { VisitsTable } from "@/components/visits/VisitsTable";
 import { visitsService } from "@/services/visitsService";
 import { VisitsFormModal } from "@/components/visits/VisitsFormModal";
+import { PlusOutlined } from "@ant-design/icons";
 export default function Visits() {
     const { message } = App.useApp();
     const [data, setData] = useState([]);
@@ -97,7 +98,7 @@ export default function Visits() {
             <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between" }}>
                 <h3>Listado Ingresos y Salidas</h3>
                 <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
-                    <Button onClick={showModal}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
                         Agregar
                     </Button>
                     <Input
@@ -110,6 +111,7 @@ export default function Visits() {
                         }}
                         onFocus={() => setIsSearchInputFocused(true)}
                         onBlur={() => setIsSearchInputFocused(false)}
+                        style={{ width: 200 }}
                     />
                 </div>
             </div>

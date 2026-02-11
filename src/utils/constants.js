@@ -88,10 +88,10 @@ export const API_ENDPOINTS = {
     TOTAL_VISITS_TODAY_LIST: "v1/dashboard/total-visits-today/",
   },
   REPORTS: {
-      GENERATE: "v1/report/generate/",
-      COMPANIES: "v1/report/companies/",
-      DOWNLOAD: "v1/report/download/",
-    },
+    GENERATE: "v1/report/generate/",
+    COMPANIES: "v1/report/companies/",
+    DOWNLOAD: "v1/report/download/",
+  },
 };
 
 export const STORAGE_KEYS = {
