@@ -1,6 +1,6 @@
 'use client';
 import { Table, Button, Space, App, Input } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { companyService } from '@/services/companyService';
 import { CompanyFormModal } from '@/components/companies/CompanyFormModal';
@@ -8,6 +8,7 @@ import { CompanyFormModal } from '@/components/companies/CompanyFormModal';
 export default function CompaniesPage() {
     const { message, modal } = App.useApp();
     const [data, setData] = useState([]);
+    const [searchText, setSearchText] = useState('');
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCompany, setEditingCompany] = useState(null);
@@ -48,22 +49,18 @@ export default function CompaniesPage() {
             render: (_, record) => (
                 <Space size="small">
                     <Button
-                        type="link"
+                        type="text"
                         size="small"
                         icon={<EditOutlined />}
                         onClick={() => handleEdit(record)}
-                    >
-                        Editar
-                    </Button>
+                    />
                     <Button
-                        type="link"
+                        type="text"
                         size="small"
                         danger
                         icon={<DeleteOutlined />}
                         onClick={() => handleDelete(record)}
-                    >
-                        Eliminar
-                    </Button>
+                    />
                 </Space>
             ),
         },
@@ -73,15 +70,6 @@ export default function CompaniesPage() {
         setLoading(true);
         try {
             const response = await companyService.get();
-            // Assuming response is an array or has a results property. 
-            // Based on previous files, list endpoints might return array directly or object with data.
-            // Let's assume array for now based on companyService.js implementation which returns response directly.
-            // If it returns { success: true, data: [...] }, we need to adjust.
-            // Checking companyService.js, it returns response.
-            // Checking backend views, it uses ListAPIView which usually returns array or paginated object.
-            // Let's check if it's paginated. It inherits ListAPIView but no pagination class set in view?
-            // Wait, CollaboratorsListView had pagination. EmpresaListView didn't have pagination class set explicitly in the snippet I saw.
-            // If no pagination, it returns array.
             if (Array.isArray(response)) {
                 setData(response);
             } else if (response.results) {
@@ -89,13 +77,10 @@ export default function CompaniesPage() {
             } else if (response.data && Array.isArray(response.data)) {
                 setData(response.data);
             } else {
-                // Fallback or error
                 setData([]);
             }
-
         } catch (error) {
             message.error('Error al cargar empresas');
-            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -138,24 +123,42 @@ export default function CompaniesPage() {
         setEditingCompany(null);
     };
 
+    const filteredData = searchText
+        ? data.filter(c =>
+            c.razon_social?.toLowerCase().includes(searchText.toLowerCase()) ||
+            c.ruc?.includes(searchText)
+        )
+        : data;
+
     return (
         <div>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1>Empresas</h1>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+                <h3>Empresas</h3>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingCompany(null); setIsModalOpen(true); }}>
                         Nueva Empresa
                     </Button>
+                    <Input
+                        placeholder="Buscar"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                    />
                 </div>
-
-                <Table
-                    columns={columns}
-                    dataSource={data}
-                    rowKey="id"
-                    loading={loading}
-                    size="small"
-                />
-            </Space>
+            </div>
+            <Table
+                columns={columns}
+                dataSource={filteredData}
+                rowKey="id"
+                loading={loading}
+                size="small"
+                scroll={{ x: "max-content" }}
+                pagination={{
+                    pageSize: 15,
+                    showSizeChanger: false,
+                    showTotal: (total) => `Total ${total} registros`,
+                }}
+            />
             <CompanyFormModal
                 isModalOpen={isModalOpen}
                 onCancel={handleModalCancel}

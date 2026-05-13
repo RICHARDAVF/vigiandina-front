@@ -220,6 +220,7 @@ export const VisitsFormModal = ({
             cancelText="Cancelar"
             width="80%"
             centered
+            forceRender
             style={{ maxWidth: 900 }}
         >
             <Form

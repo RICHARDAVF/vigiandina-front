@@ -193,7 +193,9 @@ export default function ReportsPage() {
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-          <Spin size="large" tip="Cargando reporte..." />
+          <Spin size="large" tip="Cargando reporte...">
+            <div style={{ padding: 20 }} />
+          </Spin>
         </div>
       ) : (
         <>

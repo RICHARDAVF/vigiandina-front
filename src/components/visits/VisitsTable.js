@@ -1,5 +1,5 @@
-import { Table } from "antd";
-import Button from "../ui/Buttons";
+import { Table, Button, Space } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
 
 export const VisitsTable = ({ data, loading, currentPage, totalResults, pageSize, onTableChange, callback, onEdit, onDelete }) => {
@@ -99,10 +99,10 @@ export const VisitsTable = ({ data, loading, currentPage, totalResults, pageSize
         title: 'Acciones',
         key: 'actions',
         render: (_, row) => (
-            <>
-                <Button type="link" size="small" onClick={() => onEdit(row)} style={{ marginRight: 8 }}>Editar</Button>
-                <Button type="link" size="small" danger onClick={() => onDelete(row.id)}>Eliminar</Button>
-            </>
+            <Space size="small">
+                <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(row)} />
+                <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => onDelete(row.id)} />
+            </Space>
         ),
     });
     return (

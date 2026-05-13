@@ -1,18 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Table, Card, Typography, Spin, Alert, Button, Space, Popconfirm, App } from 'antd';
+import { Table, Button, Space, Input, Popconfirm, App } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { positionService } from '@/services/positionService';
 import { PositionsFormModal } from '@/components/positions/PositionsFormModal';
-
-const { Title } = Typography;
 
 const PositionsPage = () => {
     const { message } = App.useApp();
     const [positions, setPositions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [searchText, setSearchText] = useState('');
     const pageSize = 15;
     const [currentPage, setCurrentPage] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
@@ -20,7 +18,7 @@ const PositionsPage = () => {
     const [editingPosition, setEditingPosition] = useState(null);
 
     useEffect(() => {
-        fetchPositions(currentPage)
+        fetchPositions(currentPage);
     }, [currentPage]);
 
     const fetchPositions = async (page) => {
@@ -30,8 +28,7 @@ const PositionsPage = () => {
             setPositions(response.results);
             setTotalResults(response.count);
         } catch (err) {
-            console.error("Error fetching positions:", err);
-            setError("Error al cargar los cargos.");
+            message.error("Error al cargar los cargos.");
         } finally {
             setLoading(false);
         }
@@ -68,6 +65,10 @@ const PositionsPage = () => {
         fetchPositions(currentPage);
     };
 
+    const handleTableChange = (pagination) => {
+        setCurrentPage(pagination.current);
+    };
+
     const columns = [
         {
             title: 'ID',
@@ -81,10 +82,10 @@ const PositionsPage = () => {
             key: 'cargo',
         },
         {
-            title:"Área de Trabajo",
-            dataIndex:["worklace","area"],
-            key:"worklace",
-            render: (_, record) => record.worklace?.area
+            title: "Área de Trabajo",
+            dataIndex: ["worklace", "area"],
+            key: "worklace",
+            render: (_, record) => record.worklace?.area,
         },
         {
             title: 'Acciones',
@@ -93,12 +94,11 @@ const PositionsPage = () => {
             render: (_, record) => (
                 <Space>
                     <Button
-                        type="link"
+                        type="text"
+                        icon={<EditOutlined />}
                         onClick={() => handleEdit(record)}
                         size="small"
-                    >
-                        Editar
-                    </Button>
+                    />
                     <Popconfirm
                         title="¿Estás seguro de eliminar este cargo?"
                         onConfirm={() => handleDelete(record.id)}
@@ -106,34 +106,33 @@ const PositionsPage = () => {
                         cancelText="No"
                     >
                         <Button
-                            type="link"
+                            type="text"
                             danger
+                            icon={<DeleteOutlined />}
                             size="small"
-                        >
-                            Eliminar
-                        </Button>
+                        />
                     </Popconfirm>
                 </Space>
             ),
         },
     ];
 
-   
-
-    const handleTableChange = (pagination) => {
-        setCurrentPage(pagination.current);
-    };
-
     return (
         <div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2} style={{ margin: 0 }}>Lista de Cargos de Trabajador</Title>
-                <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-                    Agregar Cargo
-                </Button>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+                <h3>Lista de Cargos de Trabajador</h3>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+                        Agregar Cargo
+                    </Button>
+                    <Input
+                        placeholder="Buscar"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        style={{ width: 200 }}
+                    />
+                </div>
             </div>
-
             <Table
                 columns={columns}
                 dataSource={positions}
@@ -150,7 +149,6 @@ const PositionsPage = () => {
                 }}
                 onChange={handleTableChange}
             />
-
             <PositionsFormModal
                 isModalOpen={isModalOpen}
                 onCancel={handleCancel}

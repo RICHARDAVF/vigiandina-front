@@ -147,62 +147,21 @@ export default function AdminPage() {
         return [];
     }
   };
-// Chart configurations
+// Chart configurations (compatible with @ant-design/charts v2 / G2 v5)
   const visitTypePieConfig = {
-    appendPadding: 10,
     data: dashboardStats?.chart_data?.visit_type_distribution || [],
     angleField: 'value',
     colorField: 'type',
     radius: 0.8,
-    label: {
-      type: 'inner',
-      offset: '-30%',
-      content: '{value}',
-      style: {
-        fontSize: 14,
-        textAlign: 'center',
-      },
-    },
-    statistic: {
-      title: false,
-      content: {
-        style: {
-          whiteSpace: 'pre-wrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        },
-      },
-    },
-    interactions: [{ type: 'element-active' }],
   };
 
   const visitStatusPieConfig = {
-    appendPadding: 10,
     data: dashboardStats?.chart_data?.visit_status_distribution_today || [],
     angleField: 'value',
     colorField: 'status',
     radius: 0.8,
-    label: {
-      type: 'inner',
-      offset: '-30%',
-      content: '{value}',
-      style: {
-        fontSize: 14,
-        textAlign: 'center',
-      },
-    },
-    statistic: {
-      title: false,
-      content: {
-        style: {
-          whiteSpace: 'pre-wrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        },
-      },
-    },
-    interactions: [{ type: 'element-active' }],
   };
+
   // Prepare data for daily activity column chart
   const dailyActivityChartData = [];
   if (dashboardStats?.daily_stats) {
@@ -224,12 +183,12 @@ export default function AdminPage() {
     data: dailyActivityChartData,
     xField: 'date',
     yField: 'value',
-    seriesField: 'category',
-    isGroup: true,
-    columnStyle: {
-      radius: [20, 20, 0, 0],
+    colorField: 'category',
+    group: true,
+    style: {
+      radiusTopLeft: 4,
+      radiusTopRight: 4,
     },
-    interactions: [{ type: 'active-region', enable: false }],
   };
 
   // Prepare data for worker entries line chart
@@ -247,14 +206,7 @@ export default function AdminPage() {
     data: workerEntriesLineChartData,
     xField: 'date',
     yField: 'value',
-    point: {
-      size: 5,
-      shape: 'diamond',
-    },
-    tooltip: {
-      showMarkers: false,
-    },
-    interactions: [{ type: 'marker-active' }],
+    point: { size: 5 },
   };
 
   // Prepare data for visits line chart
@@ -272,20 +224,15 @@ export default function AdminPage() {
     data: visitsLineChartData,
     xField: 'date',
     yField: 'value',
-    point: {
-      size: 5,
-      shape: 'diamond',
-    },
-    tooltip: {
-      showMarkers: false,
-    },
-    interactions: [{ type: 'marker-active' }],
+    point: { size: 5 },
   };
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-        <Spin size="large" tip="Cargando estadísticas..." />
+        <Spin size="large" tip="Cargando estadísticas...">
+          <div style={{ padding: 20 }} />
+        </Spin>
       </div>
     );
   }
@@ -320,7 +267,7 @@ export default function AdminPage() {
                 title="Visitantes Dentro"
                 value={dashboardStats?.visitors_inside ?? 0}
                 prefix={<TeamOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: '#EE8931' }}
               />
             </Card>
           </Col>

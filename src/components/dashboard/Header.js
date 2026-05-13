@@ -70,7 +70,7 @@ export default function Header() {
           <Avatar
             icon={<UserOutlined />}
             src={user?.avatar}
-            style={{ cursor: 'pointer', backgroundColor: '#1890ff' }}
+            style={{ cursor: 'pointer', backgroundColor: '#EE8931' }}
           />
         </Dropdown>
       </Space>

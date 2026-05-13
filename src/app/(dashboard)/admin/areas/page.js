@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Table, Button, Space, Input, Typography, App, Popconfirm } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Input, App, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { areaService } from '@/services/areaService';
 import { AreasFormModal } from '@/components/areas/AreasFormModal';
-
-const { Title } = Typography;
 
 export default function AreasPage() {
   const { message } = App.useApp();
@@ -36,7 +34,6 @@ export default function AreasPage() {
       setData(response.results);
       setTotalResults(response.count);
     } catch (error) {
-      console.error(error);
       message.error("Error al cargar áreas");
     } finally {
       setLoading(false);
@@ -93,6 +90,7 @@ export default function AreasPage() {
       render: (_, record) => (
         <Space>
           <Button
+            type="text"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             size="small"
@@ -104,6 +102,7 @@ export default function AreasPage() {
             cancelText="No"
           >
             <Button
+              type="text"
               icon={<DeleteOutlined />}
               danger
               size="small"
@@ -120,46 +119,42 @@ export default function AreasPage() {
 
   return (
     <div>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={2} style={{ margin: 0 }}>Áreas de Trabajo</Title>
+      <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+        <h3>Áreas de Trabajo</h3>
+        <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
             Nueva Área
           </Button>
+          <Input
+            placeholder="Buscar"
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 200 }}
+          />
         </div>
-
-        <Input
-          placeholder="Buscar áreas..."
-          prefix={<SearchOutlined />}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ maxWidth: 400 }}
-          allowClear
-          value={searchText}
-        />
-
-        <Table
-          columns={columns}
-          dataSource={data}
-          rowKey={(row) => `${row.id}`}
-          size='small'
-          loading={loading}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: totalResults,
-            showSizeChanger: false,
-            showTotal: (total) => `Total ${total} registros`,
-          }}
-          onChange={handleTableChange}
-        />
-
-        <AreasFormModal
-          isModalOpen={isModalOpen}
-          onCancel={handleCancel}
-          onSuccess={handleSuccess}
-          editingArea={editingArea}
-        />
-      </Space>
+      </div>
+      <Table
+        columns={columns}
+        dataSource={data}
+        rowKey={(row) => `${row.id}`}
+        size='small'
+        loading={loading}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: totalResults,
+          showSizeChanger: false,
+          showTotal: (total) => `Total ${total} registros`,
+        }}
+        scroll={{ x: "max-content" }}
+        onChange={handleTableChange}
+      />
+      <AreasFormModal
+        isModalOpen={isModalOpen}
+        onCancel={handleCancel}
+        onSuccess={handleSuccess}
+        editingArea={editingArea}
+      />
     </div>
   );
 }

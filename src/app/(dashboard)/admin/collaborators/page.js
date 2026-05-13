@@ -1,22 +1,20 @@
 'use client';
 
-import { Table, App, Button, Input, Space, Modal } from "antd";
+import { Table, App, Button, Input, Space } from "antd";
 import { useState, useEffect } from "react";
-import { api } from "@/services/api"; // Keep using api directly for list if preferred, or switch to service
 import { collaboratorService } from "@/services/collaboratorService";
-import { EditOutlined, DeleteOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { CollaboratorFormModal } from "@/components/collaborators/CollaboratorFormModal";
 
 export default function Collaborators() {
     const { message, modal } = App.useApp();
-    const [data, setData] = useState([])
+    const [data, setData] = useState([]);
+    const [searchText, setSearchText] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const [loading, setLoading] = useState(false);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCollaborator, setEditingCollaborator] = useState(null);
-
     const pageSize = 15;
 
     const columns = [
@@ -27,9 +25,7 @@ export default function Collaborators() {
         },
         {
             title: 'Nombres y Apellidos',
-            render: (_, row) => (
-                `${row.nombre} ${row.apellidos}`
-            ),
+            render: (_, row) => `${row.nombre} ${row.apellidos}`,
             key: 'fullname',
         },
         {
@@ -64,36 +60,30 @@ export default function Collaborators() {
             render: (_, row) => (
                 <Space size="small">
                     <Button
-                        type="link"
+                        type="text"
                         size='small'
+                        icon={<EditOutlined />}
                         onClick={() => handleEdit(row)}
-                    >
-                        Editar
-                    </Button>
+                    />
                     <Button
-                        type="link"
+                        type="text"
                         size='small'
                         danger
+                        icon={<DeleteOutlined />}
                         onClick={() => handleDelete(row)}
-                    >
-                        Eliminar
-                    </Button>
+                    />
                 </Space>
-            )
-
+            ),
         },
-
     ];
 
-    const fetchCollaboratorsData = async (page) => {
+    const fetchCollaboratorsData = async (page, query = "") => {
         setLoading(true);
         try {
-            // Using service instead of direct api call for consistency
-            const response = await collaboratorService.get(page, pageSize, "");
+            const response = await collaboratorService.get(page, pageSize, query);
             setData(response.results);
             setTotalResults(response.count);
         } catch (error) {
-            console.error("Error fetching collaborators data:", error);
             setData([]);
             setTotalResults(0);
         } finally {
@@ -102,7 +92,7 @@ export default function Collaborators() {
     };
 
     useEffect(() => {
-        fetchCollaboratorsData(currentPage);
+        fetchCollaboratorsData(currentPage, searchText);
     }, [currentPage]);
 
     const handleTableChange = (pagination) => {
@@ -126,7 +116,7 @@ export default function Collaborators() {
                     const response = await collaboratorService.delete(collaborator.id);
                     if (response.success) {
                         message.success(response.message);
-                        fetchCollaboratorsData(currentPage);
+                        fetchCollaboratorsData(currentPage, searchText);
                     } else {
                         message.error(response.error || "Error al eliminar colaborador");
                     }
@@ -144,13 +134,20 @@ export default function Collaborators() {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h1>Listado de Colaboradores</h1>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingCollaborator(null); setIsModalOpen(true); }}>
-                    Nuevo Colaborador
-                </Button>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+                <h3>Listado de Colaboradores</h3>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingCollaborator(null); setIsModalOpen(true); }}>
+                        Nuevo Colaborador
+                    </Button>
+                    <Input
+                        placeholder="Buscar"
+                        value={searchText}
+                        onChange={(e) => { setSearchText(e.target.value); fetchCollaboratorsData(1, e.target.value); }}
+                        style={{ width: 200 }}
+                    />
+                </div>
             </div>
-
             <Table
                 columns={columns}
                 dataSource={data}
@@ -176,5 +173,5 @@ export default function Collaborators() {
                 currentPage={currentPage}
             />
         </div>
-    )
+    );
 }

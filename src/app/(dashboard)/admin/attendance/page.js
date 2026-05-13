@@ -254,22 +254,18 @@ export default function Attendace() {
             render: (_, row) => (
                 <Space size="small">
                     <Button
-                        type="link"
+                        type="text"
                         size='small'
                         icon={<EditOutlined />}
                         onClick={() => handleEdit(row)}
-                    >
-                        Editar
-                    </Button>
+                    />
                     <Button
-                        type="link"
+                        type="text"
                         size='small'
                         danger
                         icon={<DeleteOutlined />}
                         onClick={() => handleDelete(row)}
-                    >
-                        Eliminar
-                    </Button>
+                    />
                 </Space>
             )
         }

@@ -66,9 +66,15 @@ export const API_ENDPOINTS = {
   },
   WORKPLACES: {
     LIST: "v1/workplaces/list/?page={page}&page_size={page_size}&query={query}",
+    CREATE: "v1/workplaces/create/",
+    UPDATE: "v1/workplaces/{pk}/",
+    DELETE: "v1/workplaces/{pk}/",
   },
   UNITYS: {
     LIST: "v1/unitys/list/?page={page}&page_size={page_size}&query={query}",
+    CREATE: "v1/unitys/create/",
+    UPDATE: "v1/unitys/{pk}/",
+    DELETE: "v1/unitys/{pk}/",
   },
   AREAS: {
     LIST: "v1/areas/list/?page={page}&page_size={page_size}&query={query}",
@@ -79,6 +85,9 @@ export const API_ENDPOINTS = {
   PARKING: {
     LIST: "v1/parking/list/?page={page}&page_size={page_size}&query={query}",
     LIST_AVAILABLE: "v1/parking/list-available/",
+    CREATE: "v1/parking/create/",
+    UPDATE: "v1/parking/{pk}/",
+    DELETE: "v1/parking/{pk}/",
   },
   DASHBOARD: {
     STATS: "v1/dashboard/",
@@ -91,6 +100,14 @@ export const API_ENDPOINTS = {
     GENERATE: "v1/report/generate/",
     COMPANIES: "v1/report/companies/",
     DOWNLOAD: "v1/report/download/",
+  },
+  USER_CONFIG: {
+    USER_EMPRESAS_LIST: "v1/user-config/user-empresas/list/",
+    USER_EMPRESAS_CREATE: "v1/user-config/user-empresas/create/",
+    USER_EMPRESAS_DELETE: "v1/user-config/user-empresas/delete/{pk}/",
+    USER_SUPERVISOR_LIST: "v1/user-config/user-supervisor/list/",
+    USER_SUPERVISOR_CREATE: "v1/user-config/user-supervisor/create/",
+    USER_SUPERVISOR_DELETE: "v1/user-config/user-supervisor/delete/{pk}/",
   },
 };
 

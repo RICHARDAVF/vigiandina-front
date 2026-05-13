@@ -4,8 +4,8 @@ import Providers from '@/providers/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Admin Panel',
-  description: 'Panel de administración',
+  title: 'Control de Accesos',
+  description: 'Panel de control de accesos',
 };
 
 export default function RootLayout({ children }) {

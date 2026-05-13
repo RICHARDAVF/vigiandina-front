@@ -1,55 +1,74 @@
 "use client";
-import React, { useEffect, useState} from 'react';
-import { Table, Button, Space, Input, Typography, App } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-const { Title } = Typography;
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Input, App, Space } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { unityService } from '@/services/unityService';
+import { UnityFormModal } from '@/components/unitys/UnityFormModal';
+
 const UnitysPage = () => {
-    const { message:messageApi } = App.useApp()
+    const { message, modal } = App.useApp();
     const [searchText, setSearchText] = useState('');
     const [data, setData] = useState([]);
-    const [totalResults,setTotalResults] = useState(0)
-    const [currectPage,setCurrentPage] = useState(1)
-    const [loading, setLoading] = useState(true);
-    const pageSize = 15
+    const [totalResults, setTotalResults] = useState(0);
+    const [currectPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingUnity, setEditingUnity] = useState(null);
+    const pageSize = 15;
 
     useEffect(() => {
-        fetchUnitys();
+        fetchUnitys(searchText);
     }, [currectPage]);
 
-    const fetchUnitys = async (query="") => {
+    const fetchUnitys = async (query = "") => {
+        setLoading(true);
         try {
-            const response = await unityService.list(currectPage,pageSize,query)
-            setData(response.results)
-            setTotalResults(response.count)
-        } catch (err) {
-            messageApi.error("Error al cargar las unidades.");
+            const response = await unityService.list(currectPage, pageSize, query);
+            setData(response.results);
+            setTotalResults(response.count);
+        } catch {
+            message.error("Error al cargar las unidades.");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false)
     };
 
-    const handleTableChange = ( filters, sorter) => {
+    const handleTableChange = (pagination) => {
+        setCurrentPage(pagination.current);
     };
 
-    const handleSearch = (value) => {
-        setSearchText(value);
-        // Implementar lógica de búsqueda si el backend soporta filtrado por texto
-        // Por ahora, solo se actualiza el estado de búsqueda
+    const handleEdit = (record) => {
+        setEditingUnity(record);
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = (record) => {
+        modal.confirm({
+            title: '¿Estás seguro de eliminar esta unidad?',
+            content: `Se eliminará la unidad "${record.unidad}"`,
+            okText: 'Sí, eliminar',
+            okType: 'danger',
+            cancelText: 'Cancelar',
+            onOk: async () => {
+                const response = await unityService.delete(record.id);
+                if (response.success) {
+                    message.success(response.message);
+                    fetchUnitys(searchText);
+                } else {
+                    message.error(response.error);
+                }
+            },
+        });
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        setEditingUnity(null);
     };
 
     const columns = [
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 70,
-        },
-        {
-            title: 'Unidad',
-            dataIndex: 'unidad',
-            key: 'unidad',
-            sorter: (a, b) => a.unidad.localeCompare(b.unidad),
-        },
+        { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
+        { title: 'Unidad', dataIndex: 'unidad', key: 'unidad', sorter: (a, b) => a.unidad.localeCompare(b.unidad) },
         {
             title: 'Empresa',
             dataIndex: ['empresa', 'razon_social'],
@@ -61,23 +80,8 @@ const UnitysPage = () => {
             key: 'actions',
             render: (_, record) => (
                 <Space size="small">
-                    <Button
-                        type="link"
-                        size='small'
-                        icon={<EditOutlined />}
-                        onClick={() => console.log('Editar', record)}
-                    >
-                        Editar
-                    </Button>
-                    <Button
-                        type="link"
-                        size='small'
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => console.log('Eliminar', record)}
-                    >
-                        Eliminar
-                    </Button>
+                    <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+                    <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} />
                 </Space>
             ),
         },
@@ -85,38 +89,42 @@ const UnitysPage = () => {
 
     return (
         <div>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Title level={2} style={{ margin: 0 }}>Unidades</Title>
-                    <Button type="primary" icon={<PlusOutlined />}>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+                <h3>Unidades</h3>
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingUnity(null); setIsModalOpen(true); }}>
                         Nueva Unidad
                     </Button>
+                    <Input
+                        placeholder="Buscar"
+                        value={searchText}
+                        onChange={(e) => { setSearchText(e.target.value); fetchUnitys(e.target.value); }}
+                        style={{ width: 200 }}
+                    />
                 </div>
-
-                <Input
-                    placeholder="Buscar unidades..."
-                    prefix={<SearchOutlined />}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    style={{ maxWidth: 400 }}
-                    allowClear
-                />
-
-                <Table
-                    columns={columns}
-                    dataSource={data}
-                    rowKey={(record) => record.id}
-                    loading={loading}
-                    size='small'
-                    pagination={{
-                        current:currectPage,
-                        pageSize:pageSize,
-                        showSizeChanger: false,
-                        showTotal: (total) => `Total ${total} registros`,
-                    }}
-                    scroll={{x:"max-content"}}
-                    onChange={handleTableChange}
-                />
-            </Space>
+            </div>
+            <Table
+                columns={columns}
+                dataSource={data}
+                rowKey={(record) => record.id}
+                loading={loading}
+                size='small'
+                pagination={{
+                    current: currectPage,
+                    pageSize: pageSize,
+                    total: totalResults,
+                    showSizeChanger: false,
+                    showTotal: (total) => `Total ${total} registros`,
+                }}
+                scroll={{ x: "max-content" }}
+                onChange={handleTableChange}
+            />
+            <UnityFormModal
+                isModalOpen={isModalOpen}
+                onCancel={handleCancel}
+                onSuccess={() => fetchUnitys(searchText)}
+                editingUnity={editingUnity}
+            />
         </div>
     );
 };

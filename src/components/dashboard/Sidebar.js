@@ -4,11 +4,18 @@ import { use, useContext, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import {
   DashboardOutlined,
-  UserOutlined,UsergroupAddOutlined,
+  UserOutlined,
+  UsergroupAddOutlined,
   SettingOutlined,
   FileTextOutlined,
-  BorderLeftOutlined
-  
+  SafetyCertificateOutlined,
+  BankOutlined,
+  BuildOutlined,
+  CarOutlined,
+  ShopOutlined,
+  IdcardOutlined,
+  TeamOutlined,
+  LoginOutlined,
 } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 import { SidebarContext } from '@/context/SidebarContext';
@@ -22,91 +29,79 @@ const menuItems = [
     key: ROUTES.ADMIN,
     icon: <DashboardOutlined />,
     label: 'Dashboard',
-    permission:PERMISSIONS.PERMITTED
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_USUARIOS,
     icon: <UserOutlined />,
     label: 'Usuarios',
-    permission:PERMISSIONS.NO_PERMITTED
-
+    permission: PERMISSIONS.NO_PERMITTED,
   },
   {
     key: ROUTES.ADMIN_WORKPLACES,
-    icon: <BorderLeftOutlined />,
+    icon: <SafetyCertificateOutlined />,
     label: 'Puestos de vigilancia',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_UNITYS,
-    icon: <BorderLeftOutlined />,
+    icon: <BankOutlined />,
     label: 'Unidades',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_AREAS,
-    icon: <BorderLeftOutlined />,
+    icon: <BuildOutlined />,
     label: 'Areas',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_PARKING,
-    icon: <BorderLeftOutlined />,
+    icon: <CarOutlined />,
     label: 'Parqueos',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_COMPANIES,
-    icon: <BorderLeftOutlined/>,
+    icon: <ShopOutlined />,
     label: 'Empresas',
-    permission:PERMISSIONS.NO_PERMITTED
-
+    permission: PERMISSIONS.NO_PERMITTED,
   },
   {
     key: ROUTES.ADMIN_POSITIONS,
-    icon: <BorderLeftOutlined/>,
+    icon: <IdcardOutlined />,
     label: 'Cargos',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_COLLABORATORS,
-    icon: <UserOutlined />,
+    icon: <TeamOutlined />,
     label: 'Trabajadores',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_ATTENDACE,
-    icon: <UsergroupAddOutlined />,
+    icon: <LoginOutlined />,
     label: 'Ingreso de personal',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_VISITS,
     icon: <UsergroupAddOutlined />,
     label: 'Ingreso de visitas',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_REPORTES,
     icon: <FileTextOutlined />,
     label: 'Reportes',
-    permission:PERMISSIONS.PERMITTED
-
+    permission: PERMISSIONS.PERMITTED,
   },
   {
     key: ROUTES.ADMIN_CONFIGURACION,
     icon: <SettingOutlined />,
     label: 'Configuración',
-    permission:PERMISSIONS.NO_PERMITTED
-
+    permission: PERMISSIONS.NO_PERMITTED,
   },
 ];
 
@@ -167,6 +162,7 @@ export default function Sidebar() {
           height: '100vh',
           zIndex: 999,
           transition: 'all 0.2s',
+          background: 'linear-gradient(to bottom, #EE8931, #7F060B)',
         }}
       >
         <div
@@ -181,7 +177,7 @@ export default function Sidebar() {
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
-          {(isMobile || !collapsed) ? 'Admin Panel' : 'AP'}
+          {(isMobile || !collapsed) ? 'Control de Accesos' : 'CA'}
         </div>
 
         <Menu
