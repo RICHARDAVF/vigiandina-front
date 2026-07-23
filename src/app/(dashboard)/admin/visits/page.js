@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { App } from "antd";
-import Button from "@/components/ui/Buttons";
-import Input from "@/components/ui/Input";
+import { App, DatePicker, Select, Button, Input } from "antd";
 import { VisitsTable } from "@/components/visits/VisitsTable";
 import { visitsService } from "@/services/visitsService";
+import { userConfigService } from "@/services/userConfigService";
 import { VisitsFormModal } from "@/components/visits/VisitsFormModal";
 import { PlusOutlined } from "@ant-design/icons";
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
+
 export default function Visits() {
     const { message } = App.useApp();
     const [data, setData] = useState([]);
@@ -16,15 +19,24 @@ export default function Visits() {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [dateRange, setDateRange] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [supervisedUsers, setSupervisedUsers] = useState([]);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     const searchInputRef = useRef(null);
     const [editingVisit, setEditingVisit] = useState(null);
     const pageSize = 15;
 
-    const fetchVisitsData = useCallback(async (page, text = "") => {
+    const fetchVisitsData = useCallback(async (page, text = "", dates = dateRange, userFilter = selectedUser) => {
         setLoading(true);
         try {
-            const response = await visitsService.list(page, pageSize, text);
+            let startDate = "";
+            let endDate = "";
+            if (dates && dates.length === 2 && dates[0] && dates[1]) {
+                startDate = dates[0].format('YYYY-MM-DD');
+                endDate = dates[1].format('YYYY-MM-DD');
+            }
+            const response = await visitsService.list(page, pageSize, text, startDate, endDate, userFilter);
             setData(response.results);
             setTotalResults(response.count);
         } catch (error) {
@@ -33,20 +45,32 @@ export default function Visits() {
         } finally {
             setLoading(false);
         }
-    }, [pageSize]);
+    }, [pageSize, dateRange, selectedUser]);
+
+    const loadSupervisedUsers = async () => {
+        try {
+            const res = await userConfigService.getSupervisedUsers();
+            if (res?.data) {
+                setSupervisedUsers(res.data);
+            }
+        } catch (err) {
+            console.error("Error loading supervised users", err);
+        }
+    };
+
+    useEffect(() => {
+        loadSupervisedUsers();
+    }, []);
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            // When a new search is performed, we should ideally reset to page 1.
-            // A simple way is to handle this in the input's onChange.
-            // For now, this unified effect will handle fetching on both search and page change.
-            fetchVisitsData(currentPage, searchText);
-        }, 300); // Debounce requests to avoid spamming the API while typing
+            fetchVisitsData(currentPage, searchText, dateRange, selectedUser);
+        }, 300);
 
         return () => {
             clearTimeout(handler);
         };
-    }, [currentPage, searchText, fetchVisitsData]);
+    }, [currentPage, searchText, dateRange, selectedUser, fetchVisitsData]);
 
     const handleTableChange = (pagination) => {
         setCurrentPage(pagination.current);
@@ -60,7 +84,7 @@ export default function Visits() {
             return;
         }
         message.success(response.message);
-        fetchVisitsData(currentPage);
+        fetchVisitsData(currentPage, searchText, dateRange, selectedUser);
         setLoading(false);
     };
 
@@ -76,7 +100,7 @@ export default function Visits() {
             message.error(response.error);
         } else {
             message.success(response.message);
-            fetchVisitsData(currentPage);
+            fetchVisitsData(currentPage, searchText, dateRange, selectedUser);
         }
         setLoading(false);
     };
@@ -85,7 +109,6 @@ export default function Visits() {
         setIsModalOpen(true);
     };
     const handleOk = () => {
-
         setIsModalOpen(false);
     };
 
@@ -95,23 +118,49 @@ export default function Visits() {
     };
     return (
         <div>
-            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between" }}>
-                <h3>Listado Ingresos y Salidas</h3>
-                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <h3>Listado de Visitas</h3>
+                <div style={{ display: "flex", flexWrap: "wrap", flexDirection: "row", alignItems: "center", justifyContent: "end", gap: 8 }}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
                         Agregar
                     </Button>
+                    <RangePicker
+                        placeholder={['Fecha Inicio', 'Fecha Fin']}
+                        style={{ width: 240 }}
+                        onChange={(dates) => {
+                            setDateRange(dates || []);
+                            setCurrentPage(1);
+                        }}
+                        value={dateRange}
+                    />
+                    <Select
+                        placeholder="Filtrar por Usuario"
+                        style={{ minWidth: 180 }}
+                        allowClear
+                        value={selectedUser}
+                        onChange={(val) => {
+                            setSelectedUser(val);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <Option value="-1">Todos los Usuarios</Option>
+                        {supervisedUsers.map((u) => (
+                            <Option key={u.id} value={u.id}>
+                                {u.full_name || u.username}
+                            </Option>
+                        ))}
+                    </Select>
                     <Input
                         ref={searchInputRef}
-                        placeholder="Buscar"
+                        placeholder="Buscar..."
                         value={searchText}
                         onChange={(e) => {
                             setSearchText(e.target.value);
-                            setCurrentPage(1); // Reset to page 1 on new search
+                            setCurrentPage(1);
                         }}
                         onFocus={() => setIsSearchInputFocused(true)}
                         onBlur={() => setIsSearchInputFocused(false)}
-                        style={{ width: 200 }}
+                        style={{ width: 180 }}
                     />
                 </div>
             </div>

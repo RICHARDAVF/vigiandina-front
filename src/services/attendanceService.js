@@ -1,9 +1,15 @@
 import { api } from "./api";
 import { API_ENDPOINTS } from "@/utils/constants";
 export const attendanceService = {
-    list: async (page, pageSize, query) => {
+    list: async (page, pageSize, query, startDate, endDate, userId) => {
         try {
-            const url = API_ENDPOINTS.ATTENDANCE.LIST + `?page=${page}&page_size=${pageSize}&query=${query || ''}`;
+            let url = API_ENDPOINTS.ATTENDANCE.LIST + `?page=${page}&page_size=${pageSize}&query=${encodeURIComponent(query || '')}`;
+            if (startDate && endDate) {
+                url += `&desde=${startDate}&hasta=${endDate}`;
+            }
+            if (userId && userId !== "-1") {
+                url += `&user=${userId}`;
+            }
             const response = await api.get(url)
             return response
         } catch (error) {

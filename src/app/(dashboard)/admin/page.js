@@ -397,6 +397,7 @@ export default function AdminPage() {
             columns={getModalColumns(modalContentType)}
             dataSource={modalContent}
             rowKey="id"
+            size="small"
             scroll={{ x: 'max-content', y: 400 }} // Horizontal and vertical scroll
             pagination={{ pageSize: 10 }} // Basic pagination
             locale={{ emptyText: 'No hay datos para mostrar' }}

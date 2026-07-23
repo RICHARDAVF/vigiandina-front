@@ -1,14 +1,18 @@
 'use client';
 
-import { Input, Button, Table, Space, App, Tag } from "antd";
+import { Input, Button, Table, Space, App, Tag, DatePicker, Select } from "antd";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "@/services/api";
 import { AttendanceFormModal } from "@/components/attendance/AttendanceFormModal";
 import { attendanceService } from "@/services/attendanceService";
 import AttendanceModalParking from "@/components/attendance/AttendanceModalParking";
 import { parkingService } from "@/services/parkingService";
-import { EditOutlined, DeleteOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import { userConfigService } from "@/services/userConfigService";
+import { EditOutlined, DeleteOutlined, SearchOutlined, PlusOutlined, FilterOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 export default function Attendace() {
     const { message, modal } = App.useApp()
@@ -17,6 +21,9 @@ export default function Attendace() {
     const [totalResults, setTotalResults] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [dateRange, setDateRange] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [supervisedUsers, setSupervisedUsers] = useState([]);
     const searchInputRef = useRef(null);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,10 +32,16 @@ export default function Attendace() {
     const [editingAttendance, setEditingAttendance] = useState(null);
     const pageSize = 15;
 
-    const fetchAttendanceData = useCallback(async (page, query = "") => {
+    const fetchAttendanceData = useCallback(async (page, query = "", dates = dateRange, userFilter = selectedUser) => {
         setLoading(true);
         try {
-            const response = await attendanceService.list(page, pageSize, query);
+            let startDate = "";
+            let endDate = "";
+            if (dates && dates.length === 2 && dates[0] && dates[1]) {
+                startDate = dates[0].format('YYYY-MM-DD');
+                endDate = dates[1].format('YYYY-MM-DD');
+            }
+            const response = await attendanceService.list(page, pageSize, query, startDate, endDate, userFilter);
             if (response?.data?.success === false) {
                 message.error(response.data.error || "Error desconocido");
                 return;
@@ -44,17 +57,22 @@ export default function Attendace() {
         } finally {
             setLoading(false);
         }
-    }, [pageSize]);
+    }, [pageSize, dateRange, selectedUser]);
+
+    const loadSupervisedUsers = async () => {
+        try {
+            const res = await userConfigService.getSupervisedUsers();
+            if (res?.data) {
+                setSupervisedUsers(res.data);
+            }
+        } catch (err) {
+            console.error("Error loading supervised users", err);
+        }
+    };
 
     const listAvaialbleParking = async () => {
         try {
             const response = await parkingService.list_available()
-            // Check response structure based on parkingService implementation
-            // parkingService.list_available returns response directly.
-            // If it returns array directly or inside data/results.
-            // Assuming it returns array or object with data.
-            // Based on previous code in page.js: setParking(response.data)
-            // Let's assume response.data is the array.
             if (response.data) {
                 setParking(response.data)
             } else if (Array.isArray(response)) {
@@ -70,16 +88,17 @@ export default function Attendace() {
     }
 
     useEffect(() => {
-        listAvaialbleParking()
+        listAvaialbleParking();
+        loadSupervisedUsers();
     }, [])
 
     const searchData = useCallback(async (text) => {
-        fetchAttendanceData(currentPage, text);
-    }, [fetchAttendanceData, currentPage]);
+        fetchAttendanceData(currentPage, text, dateRange, selectedUser);
+    }, [fetchAttendanceData, currentPage, dateRange, selectedUser]);
 
     useEffect(() => {
-        fetchAttendanceData(currentPage, searchText);
-    }, [currentPage, fetchAttendanceData]);
+        fetchAttendanceData(currentPage, searchText, dateRange, selectedUser);
+    }, [currentPage, dateRange, selectedUser, fetchAttendanceData]);
 
     useEffect(() => {
         let barcode = '';
@@ -273,23 +292,49 @@ export default function Attendace() {
 
     return (
         <div>
-            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", marginBottom: 16 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", flexDirection: 'row', justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <h3>Listado Ingresos y Salidas</h3>
-                <div style={{ display: "flex", flexDirection: "row", justifyContent: "end", gap: 8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", flexDirection: "row", alignItems: "center", justifyContent: "end", gap: 8 }}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
                         Agregar
                     </Button>
+                    <RangePicker
+                        placeholder={['Fecha Inicio', 'Fecha Fin']}
+                        style={{ width: 240 }}
+                        onChange={(dates) => {
+                            setDateRange(dates || []);
+                            setCurrentPage(1);
+                        }}
+                        value={dateRange}
+                    />
+                    <Select
+                        placeholder="Filtrar por Usuario"
+                        style={{ minWidth: 180 }}
+                        allowClear
+                        value={selectedUser}
+                        onChange={(val) => {
+                            setSelectedUser(val);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <Option value="-1">Todos los Usuarios</Option>
+                        {supervisedUsers.map((u) => (
+                            <Option key={u.id} value={u.id}>
+                                {u.full_name || u.username}
+                            </Option>
+                        ))}
+                    </Select>
                     <Input
                         ref={searchInputRef}
-                        placeholder="Buscar"
+                        placeholder="Buscar..."
                         value={searchText}
                         onChange={(e) => {
                             setSearchText(e.target.value);
-                            searchData(e.target.value);
+                            setCurrentPage(1);
                         }}
                         onFocus={() => setIsSearchInputFocused(true)}
                         onBlur={() => setIsSearchInputFocused(false)}
-                        style={{ width: 200 }}
+                        style={{ width: 180 }}
                     />
                 </div>
             </div>

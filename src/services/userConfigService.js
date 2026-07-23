@@ -33,4 +33,8 @@ export const userConfigService = {
     );
     return response;
   },
+  getSupervisedUsers: async () => {
+    const response = await api.get(API_ENDPOINTS.USER_CONFIG.USER_SUPERVISED_LIST);
+    return response;
+  },
 };

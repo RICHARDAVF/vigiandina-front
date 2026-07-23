@@ -108,6 +108,7 @@ export const API_ENDPOINTS = {
     USER_SUPERVISOR_LIST: "v1/user-config/user-supervisor/list/",
     USER_SUPERVISOR_CREATE: "v1/user-config/user-supervisor/create/",
     USER_SUPERVISOR_DELETE: "v1/user-config/user-supervisor/delete/{pk}/",
+    USER_SUPERVISED_LIST: "v1/user-config/user-supervisor/supervised/",
   },
 };
 

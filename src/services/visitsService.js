@@ -2,9 +2,15 @@ import { api } from "./api";
 import { API_ENDPOINTS } from "@/utils/constants";
 
 export const visitsService = {
-    list: async (page, pageSize, query) => {
+    list: async (page, pageSize, query, startDate, endDate, userId) => {
         try {
-            const url = API_ENDPOINTS.VISITS.LIST.replace("{page}", page).replace("{page_size}", pageSize).replace("{query}", query)
+            let url = API_ENDPOINTS.VISITS.LIST.replace("{page}", page).replace("{page_size}", pageSize).replace("{query}", encodeURIComponent(query || ''));
+            if (startDate && endDate) {
+                url += `&desde=${startDate}&hasta=${endDate}`;
+            }
+            if (userId && userId !== "-1") {
+                url += `&user=${userId}`;
+            }
             const response = await api.get(url)
             return response
         } catch (error) {

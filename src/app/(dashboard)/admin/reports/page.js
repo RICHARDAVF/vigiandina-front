@@ -205,6 +205,7 @@ export default function ReportsPage() {
                 columns={getIngresoSalidaColumns()}
                 dataSource={reportData.ingresos_salidas}
                 rowKey="id"
+                size="small"
                 scroll={{ x: 'max-content' }}
                 pagination={{ pageSize: 10 }}
                 locale={{ emptyText: 'No hay datos de ingresos/salidas para mostrar' }}
@@ -218,6 +219,7 @@ export default function ReportsPage() {
                 columns={getVisitasColumns()}
                 dataSource={reportData.visitas}
                 rowKey="id"
+                size="small"
                 scroll={{ x: 'max-content' }}
                 pagination={{ pageSize: 10 }}
                 locale={{ emptyText: 'No hay datos de visitas para mostrar' }}

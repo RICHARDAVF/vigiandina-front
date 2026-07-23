@@ -167,17 +167,27 @@ export default function Sidebar() {
       >
         <div
           style={{
-            height: 64,
+            padding: '8px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            fontSize: 20,
-            fontWeight: 'bold',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            minHeight: 90,
           }}
         >
-          {(isMobile || !collapsed) ? 'Control de Accesos' : 'CA'}
+          {(isMobile || !collapsed) ? (
+            <img
+              src="/test/img/logo.png"
+              alt="Logo Empresa"
+              style={{ maxHeight: 75, maxWidth: '95%', objectFit: 'contain' }}
+            />
+          ) : (
+            <img
+              src="/test/img/logo.png"
+              alt="Logo Empresa"
+              style={{ maxHeight: 45, maxWidth: '95%', objectFit: 'contain' }}
+            />
+          )}
         </div>
 
         <Menu
