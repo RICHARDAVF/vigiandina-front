@@ -48,10 +48,14 @@ export default function ReportsPage() {
       }
 
       const data = await dashboardService.generateReport(params);
-      setReportData(data);
+      setReportData({
+        ingresos_salidas: Array.isArray(data?.ingresos_salidas) ? data.ingresos_salidas : [],
+        visitas: Array.isArray(data?.visitas) ? data.visitas : []
+      });
     } catch (err) {
       console.error("Error generating report:", err);
       setError("Error al generar el reporte.");
+      setReportData({ ingresos_salidas: [], visitas: [] });
     } finally {
       setLoading(false);
     }

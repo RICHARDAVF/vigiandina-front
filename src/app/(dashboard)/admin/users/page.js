@@ -82,13 +82,19 @@ export default function UsuariosPage() {
         setLoading(true);
         try {
             const response = await userService.list();
-            if (response.success) {
-                setData(response.data);
+            if (response?.success) {
+                setData(Array.isArray(response.data) ? response.data : []);
+            } else if (Array.isArray(response?.results)) {
+                setData(response.results);
+            } else if (Array.isArray(response)) {
+                setData(response);
             } else {
-                message.error(response.error);
+                message.error(response?.error || "Error al cargar usuarios");
+                setData([]);
             }
         } catch (error) {
             message.error("Error al cargar usuarios");
+            setData([]);
         } finally {
             setLoading(false);
         }

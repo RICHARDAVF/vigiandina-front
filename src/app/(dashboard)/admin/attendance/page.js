@@ -42,13 +42,16 @@ export default function Attendace() {
                 endDate = dates[1].format('YYYY-MM-DD');
             }
             const response = await attendanceService.list(page, pageSize, query, startDate, endDate, userFilter);
-            if (response?.data?.success === false) {
-                message.error(response.data.error || "Error desconocido");
+            if (response?.data?.success === false || response?.success === false) {
+                message.error(response?.data?.error || response?.error || "Error al cargar datos");
+                setData([]);
+                setTotalResults(0);
                 return;
             }
 
-            setData(response.results);
-            setTotalResults(response.count);
+            const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+            setData(listData);
+            setTotalResults(response?.count ?? listData.length);
 
         } catch (error) {
             console.error("Error fetching attendance data:", error);

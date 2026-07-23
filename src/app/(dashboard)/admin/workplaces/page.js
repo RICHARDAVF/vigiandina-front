@@ -24,10 +24,13 @@ const WorkplacesPage = () => {
         setLoading(true);
         try {
             const response = await workplaceService.list(currectPage, pageSize, query);
-            setData(response.results);
-            setTotalResults(response.count);
+            const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+            setData(listData);
+            setTotalResults(response?.count ?? listData.length);
         } catch {
             message.error("Error al cargar los puestos de trabajo.");
+            setData([]);
+            setTotalResults(0);
         } finally {
             setLoading(false);
         }

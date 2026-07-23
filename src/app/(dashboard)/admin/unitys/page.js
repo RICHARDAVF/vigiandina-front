@@ -24,10 +24,13 @@ const UnitysPage = () => {
         setLoading(true);
         try {
             const response = await unityService.list(currectPage, pageSize, query);
-            setData(response.results);
-            setTotalResults(response.count);
+            const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+            setData(listData);
+            setTotalResults(response?.count ?? listData.length);
         } catch {
             message.error("Error al cargar las unidades.");
+            setData([]);
+            setTotalResults(0);
         } finally {
             setLoading(false);
         }

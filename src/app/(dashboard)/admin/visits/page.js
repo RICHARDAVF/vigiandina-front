@@ -37,8 +37,9 @@ export default function Visits() {
                 endDate = dates[1].format('YYYY-MM-DD');
             }
             const response = await visitsService.list(page, pageSize, text, startDate, endDate, userFilter);
-            setData(response.results);
-            setTotalResults(response.count);
+            const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+            setData(listData);
+            setTotalResults(response?.count ?? listData.length);
         } catch (error) {
             setData([]);
             setTotalResults(0);

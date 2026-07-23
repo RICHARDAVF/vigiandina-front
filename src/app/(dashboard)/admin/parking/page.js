@@ -51,10 +51,13 @@ export default function ParkingPage() {
         setLoading(true);
         try {
             const response = await parkingService.list(currentPage, pageSize, query);
-            setData(response.results);
-            setTotalResults(response.count);
+            const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+            setData(listData);
+            setTotalResults(response?.count ?? listData.length);
         } catch {
             messageApi.error("Error al cargar parqueos");
+            setData([]);
+            setTotalResults(0);
         } finally {
             setLoading(false);
         }

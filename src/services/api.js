@@ -6,7 +6,7 @@ export const api = {
       const response = await axiosInstance.get(url, config);
       return response.data;
     } catch (error) {
-      return error.response;
+      return error.response?.data || { success: false, error: error.message };
     }
   },
 

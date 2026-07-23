@@ -31,10 +31,13 @@ export default function AreasPage() {
     setLoading(true);
     try {
       const response = await areaService.list(page, pageSize, query);
-      setData(response.results);
-      setTotalResults(response.count);
+      const listData = Array.isArray(response?.results) ? response.results : (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []));
+      setData(listData);
+      setTotalResults(response?.count ?? listData.length);
     } catch (error) {
       message.error("Error al cargar áreas");
+      setData([]);
+      setTotalResults(0);
     } finally {
       setLoading(false);
     }
